@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { registrationService, RegisterPayload } from '../services/registration.service';
-import { DiwaliLamp } from '../components/DiwaliLamp';
+import { JecrcLogo, JecrcCrest } from '../components/JecrcLogo';
 import {
   User,
   Mail,
@@ -13,8 +13,10 @@ import {
   Briefcase,
   AlertCircle,
   Loader2,
-  Sparkles,
   CheckCircle2,
+  ArrowRight,
+  ShieldCheck,
+  Calendar,
 } from 'lucide-react';
 
 const DEGREES = [
@@ -69,7 +71,7 @@ export const RegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const currentYear = new Date().getFullYear();
+  const currentYear = 2026;
   const years = Array.from({ length: 26 }, (_, i) => currentYear - i); // 2026 down to 2001
 
   const handleChange = (
@@ -86,7 +88,6 @@ export const RegisterPage: React.FC = () => {
     e.preventDefault();
     setErrorMessage(null);
 
-    // Basic frontend validation
     if (!formData.fullName.trim()) {
       setErrorMessage('Full Name is required.');
       return;
@@ -112,7 +113,6 @@ export const RegisterPage: React.FC = () => {
     setLoading(true);
     try {
       const result = await registrationService.register(formData);
-      // Navigate to success page with generated pass data
       navigate('/registration/success', { state: { registration: result } });
     } catch (err: any) {
       const errorText =
@@ -127,87 +127,77 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="py-10 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-      {/* Header Banner */}
-      <div className="text-center mb-10">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFF9EE] border border-[#D9AD56]/60 shadow-sm mb-4">
-          <DiwaliLamp size={24} />
-          <span className="text-xs font-bold uppercase tracking-widest text-[#493078]">
-            Alumni Association Annual Fest
-          </span>
-          <DiwaliLamp size={24} />
+    <div className="py-10 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
+      {/* Institutional Top Banner */}
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 sm:p-8 shadow-xs mb-8 text-center">
+        <div className="flex justify-center mb-4">
+          <JecrcCrest size={56} />
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-extrabold text-[#101A32] font-serif tracking-tight">
-          JECRC Alumni Diwali Get-Together 2026
-        </h1>
-
-        <p className="mt-3 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
-          Reconnect, reminisce, and celebrate the festival of lights with your alma mater. Register below to receive your official QR Entry Pass.
+        <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+          JECRC UNIVERSITY • ALUMNI ASSOCIATION
         </p>
 
-        {/* Quick Highlights */}
-        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 mt-6 text-xs sm:text-sm text-[#101A32] font-semibold">
-          <span className="inline-flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-[#16845B]" />
-            Free Alumni Entry
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#172033] tracking-tight mt-1">
+          Diwali Get-Together <span className="text-[#E31827]">2026 Registration</span>
+        </h1>
+
+        <p className="mt-2 text-xs sm:text-sm text-[#64748B] max-w-lg mx-auto leading-relaxed">
+          Official alumni entry registration. Submit your verified details to generate your digital gate pass with a unique secure QR code.
+        </p>
+
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-xs text-[#172033] font-medium pt-4 border-t border-gray-100">
+          <span className="inline-flex items-center gap-1.5 text-[#16845B]">
+            <CheckCircle2 className="w-4 h-4" />
+            Verified Alumni Pass
           </span>
-          <span className="inline-flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-[#16845B]" />
-            Instant Digital QR Pass
+          <span className="inline-flex items-center gap-1.5 text-[#16845B]">
+            <CheckCircle2 className="w-4 h-4" />
+            Instant Digital Download
           </span>
-          <span className="inline-flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-[#16845B]" />
-            No Password Required
+          <span className="inline-flex items-center gap-1.5 text-[#16845B]">
+            <CheckCircle2 className="w-4 h-4" />
+            Zero Fee Admission
           </span>
         </div>
       </div>
 
       {/* Error Alert Banner */}
       {errorMessage && (
-        <div className="mb-8 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 flex items-start gap-3 shadow-sm animate-shake">
-          <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 shrink-0" />
-          <div className="text-sm">
+        <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-start gap-3 shadow-xs">
+          <AlertCircle className="w-5 h-5 text-[#DC2626] mt-0.5 shrink-0" />
+          <div className="text-xs">
             <p className="font-bold">Registration Alert</p>
             <p className="mt-0.5">{errorMessage}</p>
           </div>
         </div>
       )}
 
-      {/* Main Form Card */}
-      <div className="bg-white rounded-3xl border border-[#D9AD56]/40 shadow-xl overflow-hidden">
-        <div className="bg-gradient-to-r from-[#101A32] via-[#493078] to-[#101A32] px-6 py-4 text-white flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#D9AD56]" />
-            <h2 className="text-base sm:text-lg font-bold font-serif tracking-wide">
-              Alumni Registration Form
-            </h2>
-          </div>
-          <span className="text-xs text-[#E5C174] font-mono">Event Year: 2026</span>
+      {/* Main Registration Form Card */}
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#FAFAFB] flex items-center justify-between">
+          <h2 className="text-sm font-bold text-[#172033] uppercase tracking-wider">
+            Alumni Registration Form
+          </h2>
+          <span className="text-[11px] text-[#64748B] font-mono">Academic Cohort 2001–2026</span>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 sm:p-10 space-y-8">
+        <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-7">
           {/* SECTION 1: PERSONAL INFORMATION */}
-          <div>
-            <div className="flex items-center gap-2.5 pb-2 border-b border-gray-100 mb-5">
-              <div className="p-1.5 rounded-lg bg-[#493078]/10 text-[#493078]">
-                <User className="w-4 h-4" />
-              </div>
-              <h3 className="text-base font-bold text-[#101A32] uppercase tracking-wider font-serif">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+              <span className="text-xs font-bold text-[#E31827] uppercase tracking-wider">
                 1. Personal Information
-              </h3>
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {/* Full Name */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                  Full Name <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-[#172033] mb-1">
+                  Full Name <span className="text-[#E31827]">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <User className="w-4 h-4" />
-                  </div>
+                  <User className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
                   <input
                     type="text"
                     name="fullName"
@@ -215,20 +205,17 @@ export const RegisterPage: React.FC = () => {
                     onChange={handleChange}
                     required
                     placeholder="e.g. Rahul Sharma"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#D9AD56] focus:ring-2 focus:ring-[#D9AD56]/20 transition-all text-sm outline-none text-[#101A32]"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033]"
                   />
                 </div>
               </div>
 
-              {/* Email Address */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                  Email Address <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-[#172033] mb-1">
+                  Email Address <span className="text-[#E31827]">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <Mail className="w-4 h-4" />
-                  </div>
+                  <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
                   <input
                     type="email"
                     name="email"
@@ -236,20 +223,17 @@ export const RegisterPage: React.FC = () => {
                     onChange={handleChange}
                     required
                     placeholder="rahul.sharma@example.com"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#D9AD56] focus:ring-2 focus:ring-[#D9AD56]/20 transition-all text-sm outline-none text-[#101A32]"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033]"
                   />
                 </div>
               </div>
 
-              {/* Mobile Number */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                  Mobile Number (India) <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-[#172033] mb-1">
+                  Mobile Number (India) <span className="text-[#E31827]">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <Phone className="w-4 h-4" />
-                  </div>
+                  <Phone className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
                   <input
                     type="tel"
                     name="mobile"
@@ -257,31 +241,24 @@ export const RegisterPage: React.FC = () => {
                     onChange={handleChange}
                     required
                     placeholder="9876543210"
-                    maxLength={14}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#D9AD56] focus:ring-2 focus:ring-[#D9AD56]/20 transition-all text-sm outline-none text-[#101A32]"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] font-mono"
                   />
                 </div>
-                <p className="text-[11px] text-gray-400 mt-1">
-                  10-digit mobile number for pass confirmation
-                </p>
               </div>
 
-              {/* Current City */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#172033] mb-1">
                   Current City (Optional)
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <MapPin className="w-4 h-4" />
-                  </div>
+                  <MapPin className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
                   <input
                     type="text"
                     name="currentCity"
                     value={formData.currentCity}
                     onChange={handleChange}
                     placeholder="e.g. Jaipur, Bengaluru, Gurgaon"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#D9AD56] focus:ring-2 focus:ring-[#D9AD56]/20 transition-all text-sm outline-none text-[#101A32]"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033]"
                   />
                 </div>
               </div>
@@ -289,28 +266,24 @@ export const RegisterPage: React.FC = () => {
           </div>
 
           {/* SECTION 2: ACADEMIC INFORMATION */}
-          <div>
-            <div className="flex items-center gap-2.5 pb-2 border-b border-gray-100 mb-5">
-              <div className="p-1.5 rounded-lg bg-[#D9AD56]/20 text-[#B88F3B]">
-                <GraduationCap className="w-4 h-4" />
-              </div>
-              <h3 className="text-base font-bold text-[#101A32] uppercase tracking-wider font-serif">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+              <span className="text-xs font-bold text-[#E31827] uppercase tracking-wider">
                 2. Academic Information
-              </h3>
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              {/* Graduation Year */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                  Passing Batch / Year <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-[#172033] mb-1">
+                  Graduation Year <span className="text-[#E31827]">*</span>
                 </label>
                 <select
                   name="graduationYear"
                   value={formData.graduationYear}
                   onChange={handleChange}
                   required
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:border-[#D9AD56] focus:ring-2 focus:ring-[#D9AD56]/20 transition-all text-sm outline-none bg-white text-[#101A32]"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
                 >
                   {years.map((y) => (
                     <option key={y} value={y}>
@@ -320,42 +293,35 @@ export const RegisterPage: React.FC = () => {
                 </select>
               </div>
 
-              {/* Course / Degree */}
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                  Course / Degree <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-[#172033] mb-1">
+                  Course / Degree <span className="text-[#E31827]">*</span>
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <BookOpen className="w-4 h-4" />
-                  </div>
-                  <select
-                    name="course"
-                    value={formData.course}
-                    onChange={handleChange}
-                    required
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#D9AD56] focus:ring-2 focus:ring-[#D9AD56]/20 transition-all text-sm outline-none bg-white text-[#101A32]"
-                  >
-                    {DEGREES.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  name="course"
+                  value={formData.course}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
+                >
+                  {DEGREES.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              {/* Branch / Department */}
               <div className="sm:col-span-3">
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                  Branch / Department <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-[#172033] mb-1">
+                  Branch / Department <span className="text-[#E31827]">*</span>
                 </label>
                 <select
                   name="branch"
                   value={formData.branch}
                   onChange={handleChange}
                   required
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 focus:border-[#D9AD56] focus:ring-2 focus:ring-[#D9AD56]/20 transition-all text-sm outline-none bg-white text-[#101A32]"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
                 >
                   {BRANCHES.map((b) => (
                     <option key={b} value={b}>
@@ -368,86 +334,86 @@ export const RegisterPage: React.FC = () => {
           </div>
 
           {/* SECTION 3: PROFESSIONAL INFORMATION */}
-          <div>
-            <div className="flex items-center gap-2.5 pb-2 border-b border-gray-100 mb-5">
-              <div className="p-1.5 rounded-lg bg-[#16845B]/15 text-[#16845B]">
-                <Building className="w-4 h-4" />
-              </div>
-              <h3 className="text-base font-bold text-[#101A32] uppercase tracking-wider font-serif">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+              <span className="text-xs font-bold text-[#E31827] uppercase tracking-wider">
                 3. Professional Information
-              </h3>
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {/* Company / Organization */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                  Current Company / Organization <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-[#172033] mb-1">
+                  Company / Organization <span className="text-[#E31827]">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <Building className="w-4 h-4" />
-                  </div>
+                  <Building className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
                   <input
                     type="text"
                     name="companyName"
                     value={formData.companyName}
                     onChange={handleChange}
                     required
-                    placeholder="e.g. Google, TCS, Self-Employed"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#D9AD56] focus:ring-2 focus:ring-[#D9AD56]/20 transition-all text-sm outline-none text-[#101A32]"
+                    placeholder="e.g. Google, Infosys, Self-Employed"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033]"
                   />
                 </div>
               </div>
 
-              {/* Designation / Role */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                  Current Designation / Job Role <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-[#172033] mb-1">
+                  Current Designation <span className="text-[#E31827]">*</span>
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <Briefcase className="w-4 h-4" />
-                  </div>
+                  <Briefcase className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
                   <input
                     type="text"
                     name="designation"
                     value={formData.designation}
                     onChange={handleChange}
                     required
-                    placeholder="e.g. Senior Software Engineer, Founder"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#D9AD56] focus:ring-2 focus:ring-[#D9AD56]/20 transition-all text-sm outline-none text-[#101A32]"
+                    placeholder="e.g. Senior Software Engineer"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033]"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="pt-4">
+          {/* Submit Action */}
+          <div className="pt-2">
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#101A32] via-[#493078] to-[#101A32] text-white font-serif font-bold text-base sm:text-lg shadow-lg hover:shadow-xl hover:opacity-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 border border-[#D9AD56]/50 cursor-pointer"
+              className="w-full py-3 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-bold text-xs uppercase tracking-wider shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin text-[#D9AD56]" />
-                  <span>Generating Your Secure Pass...</span>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>Processing Registration...</span>
                 </>
               ) : (
                 <>
-                  <DiwaliLamp size={28} />
-                  <span>Complete Registration & Generate QR Pass</span>
-                  <DiwaliLamp size={28} />
+                  <span>Submit Registration & Generate QR Pass</span>
+                  <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
-            <p className="text-center text-xs text-gray-400 mt-3">
-              By submitting, your details will be verified against the JECRC Alumni directory. No account creation is needed.
+            <p className="text-center text-[11px] text-[#64748B] mt-2.5">
+              Registration is verified directly in the university alumni records. No password required.
             </p>
           </div>
         </form>
+      </div>
+
+      {/* Staff Login Link */}
+      <div className="text-center mt-6">
+        <Link
+          to="/admin/login"
+          className="text-xs text-[#64748B] hover:text-[#E31827] font-medium transition-colors"
+        >
+          Staff & Volunteer Gate Access Portal →
+        </Link>
       </div>
     </div>
   );

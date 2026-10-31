@@ -63,8 +63,12 @@ app.use((_req, res) => {
 // Central error handler
 app.use(errorHandler);
 
-// Start server if not imported by test suite
-if (process.env.NODE_ENV !== 'test') {
+// Start server if not running test suite
+const isTestMode =
+  process.env.NODE_ENV === 'test' ||
+  process.argv.some((arg) => arg.toLowerCase().includes('test'));
+
+if (!isTestMode) {
   const server = app.listen(env.PORT, () => {
     console.log(`=======================================================`);
     console.log(`✨ JECRC Alumni Diwali 2026 Server running on port ${env.PORT}`);

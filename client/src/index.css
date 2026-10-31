@@ -4,34 +4,33 @@
 
 @layer base {
   body {
-    @apply bg-[#FFF9EE] text-[#101A32] font-sans antialiased min-h-screen;
-    background-image: radial-gradient(#d9ad5620 1px, transparent 1px);
-    background-size: 24px 24px;
+    @apply bg-[#FAFAFB] text-[#172033] font-sans antialiased min-h-screen;
+    color: #172033;
+    background-color: #FAFAFB;
   }
 }
 
 /* Custom scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #FFF9EE;
+  background: #F1F5F9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D9AD56;
-  border-radius: 4px;
+  background: #CBD5E1;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #B88F3B;
+  background: #94A3B8;
 }
 
 /* Print Styles for QR Pass */
 @media print {
   body {
-    background: white !important;
-    background-image: none !important;
-    color: black !important;
+    background: #FFFFFF !important;
+    color: #000000 !important;
   }
   
   .no-print {
@@ -44,9 +43,9 @@
 
   .pass-print-container {
     box-shadow: none !important;
-    border: 2px solid #101A32 !important;
+    border: 1px solid #E5E7EB !important;
     page-break-inside: avoid;
     margin: 0 auto !important;
-    max-width: 600px !important;
+    max-width: 580px !important;
   }
 }

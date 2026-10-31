@@ -1,7 +1,7 @@
 import React from 'react';
-import { DiwaliLamp } from './DiwaliLamp';
+import { JecrcCrest } from './JecrcLogo';
 import { AlumniRegistrationData } from '../types';
-import { MapPin, Calendar, Award, Building, Briefcase } from 'lucide-react';
+import { MapPin, Calendar, Award, Building, Briefcase, CheckCircle2 } from 'lucide-react';
 
 interface PassCardProps {
   data: AlumniRegistrationData;
@@ -12,129 +12,116 @@ export const PassCard: React.FC<PassCardProps> = ({ data, cardRef }) => {
   return (
     <div
       ref={cardRef}
-      className="pass-print-container w-full max-w-xl mx-auto bg-white rounded-3xl overflow-hidden border-2 border-[#D9AD56]/40 shadow-2xl relative"
+      className="pass-print-container w-full max-w-lg mx-auto bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-xs"
     >
-      {/* Top Header Banner */}
-      <div className="bg-gradient-to-r from-[#101A32] via-[#493078] to-[#101A32] text-white p-6 sm:p-8 text-center relative overflow-hidden">
-        {/* Decorative corner glows */}
-        <div className="absolute -top-12 -left-12 w-32 h-32 rounded-full bg-[#D9AD56]/20 blur-xl"></div>
-        <div className="absolute -bottom-12 -right-12 w-32 h-32 rounded-full bg-[#D9AD56]/20 blur-xl"></div>
-
-        <div className="relative z-10 flex flex-col items-center">
-          <div className="flex items-center gap-3 mb-2">
-            <DiwaliLamp size={36} />
-            <span className="text-xs uppercase tracking-widest text-[#D9AD56] font-semibold border-b border-[#D9AD56]/40 pb-0.5">
-              Alumni Association Presents
-            </span>
-            <DiwaliLamp size={36} />
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-wide font-serif text-white">
-            JECRC UNIVERSITY
-          </h1>
-
-          <div className="inline-block mt-2 px-4 py-1 rounded-full bg-[#D9AD56]/20 border border-[#D9AD56]/50">
-            <h2 className="text-sm sm:text-base font-bold text-[#E5C174] uppercase tracking-wider">
+      {/* Top Institutional Header */}
+      <div className="bg-white p-6 border-b border-[#E5E7EB] flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <JecrcCrest size={44} />
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#E31827]">
+              JECRC UNIVERSITY • ALUMNI ASSOCIATION
+            </p>
+            <h1 className="text-base font-bold text-[#172033] tracking-tight">
               Diwali Get-Together 2026 • Official Entry Pass
-            </h2>
+            </h1>
           </div>
+        </div>
+
+        <div className="text-right">
+          <span className="text-[10px] font-mono font-bold text-[#64748B] block">
+            DATE: 31 OCT 2026
+          </span>
+          <span className="text-[10px] font-bold text-[#16845B] bg-[#EBF7F2] px-2 py-0.5 rounded border border-[#16845B]/20">
+            CONFIRMED
+          </span>
         </div>
       </div>
 
-      {/* Main Body */}
-      <div className="p-6 sm:p-8 space-y-6">
-        {/* Name and Registration ID */}
-        <div className="text-center pb-5 border-b border-gray-100">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+      {/* Main Pass Body */}
+      <div className="p-6 space-y-6">
+        {/* Name and Pass ID */}
+        <div className="text-center pb-4 border-b border-gray-100">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
             Registered Alumnus
           </p>
-          <h3 className="text-2xl sm:text-3xl font-extrabold text-[#101A32] mt-1 font-serif">
+          <h2 className="text-2xl font-bold text-[#172033] mt-0.5">
             {data.fullName}
-          </h3>
-          <div className="mt-2.5 inline-flex items-center gap-2 px-4 py-1.5 rounded-lg bg-[#FFF9EE] border border-[#D9AD56]/60 text-[#101A32] font-mono text-sm sm:text-base font-bold shadow-sm">
-            <span>Pass ID:</span>
-            <span className="text-[#493078]">{data.registrationId}</span>
+          </h2>
+          <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#FAFAFB] border border-[#E5E7EB] text-[#172033] font-mono text-xs font-bold">
+            <span className="text-[#64748B]">Pass ID:</span>
+            <span className="text-[#E31827]">{data.registrationId}</span>
           </div>
         </div>
 
-        {/* QR Code and Key Details Grid */}
+        {/* QR Code and Details Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
-          {/* QR Code Frame */}
-          <div className="flex flex-col items-center justify-center p-4 bg-[#FFF9EE]/70 rounded-2xl border-2 border-dashed border-[#D9AD56]/60">
+          {/* QR Code Container */}
+          <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-[#E5E7EB] bg-[#FAFAFB]">
             {data.qrCodeDataUrl ? (
               <img
                 src={data.qrCodeDataUrl}
                 alt={`QR Pass for ${data.registrationId}`}
-                className="w-48 h-48 object-contain rounded-xl shadow-sm bg-white p-2"
+                className="w-44 h-44 object-contain rounded-lg bg-white p-1"
               />
             ) : (
-              <div className="w-48 h-48 bg-gray-100 rounded-xl flex items-center justify-center text-xs text-gray-400">
+              <div className="w-44 h-44 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400">
                 Generating QR...
               </div>
             )}
-            <p className="text-xs text-center font-medium text-gray-500 mt-2">
-              Scan at University Gate for Entry
+            <p className="text-[10px] text-center font-medium text-[#64748B] mt-2">
+              Present at Gate for QR Verification
             </p>
           </div>
 
-          {/* Academic & Professional Info */}
-          <div className="space-y-3.5 text-sm">
-            <div className="flex items-start gap-2.5">
-              <Award className="w-4 h-4 text-[#D9AD56] mt-0.5 shrink-0" />
-              <div>
-                <p className="text-xs text-gray-400 font-medium">Batch & Branch</p>
-                <p className="font-bold text-[#101A32]">
-                  Class of {data.graduationYear}
-                </p>
-                <p className="text-xs text-gray-600">
-                  {data.course} • {data.branch}
-                </p>
-              </div>
+          {/* Academic & Corporate Details */}
+          <div className="space-y-3 text-xs">
+            <div>
+              <p className="text-[10px] font-bold uppercase text-[#64748B]">Academic Cohort</p>
+              <p className="font-bold text-[#172033] mt-0.5">
+                Class of {data.graduationYear}
+              </p>
+              <p className="text-[#64748B] text-[11px] truncate">
+                {data.course} • {data.branch}
+              </p>
             </div>
 
-            <div className="flex items-start gap-2.5">
-              <Building className="w-4 h-4 text-[#493078] mt-0.5 shrink-0" />
-              <div>
-                <p className="text-xs text-gray-400 font-medium">Organization</p>
-                <p className="font-bold text-[#101A32]">{data.companyName}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2.5">
-              <Briefcase className="w-4 h-4 text-[#493078] mt-0.5 shrink-0" />
-              <div>
-                <p className="text-xs text-gray-400 font-medium">Designation</p>
-                <p className="font-semibold text-gray-700">{data.designation}</p>
-              </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase text-[#64748B]">Organization & Role</p>
+              <p className="font-bold text-[#172033] mt-0.5 truncate">
+                {data.companyName}
+              </p>
+              <p className="text-[#64748B] text-[11px] truncate">
+                {data.designation}
+              </p>
             </div>
 
             {data.currentCity && (
-              <div className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-[#16845B] mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-xs text-gray-400 font-medium">Current City</p>
-                  <p className="font-semibold text-gray-700">{data.currentCity}</p>
-                </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase text-[#64748B]">Current City</p>
+                <p className="font-medium text-[#172033] mt-0.5">
+                  {data.currentCity}
+                </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Event Schedule & Venue Footer within Pass */}
-        <div className="bg-[#101A32]/5 rounded-xl p-4 text-xs text-gray-600 space-y-1.5 border border-gray-100">
-          <div className="flex items-center gap-2 font-medium text-[#101A32]">
-            <Calendar className="w-4 h-4 text-[#D9AD56]" />
-            <span>Date: Sunday, October 31, 2026 | Gates Open: 05:00 PM IST</span>
+        {/* Event Schedule Footer */}
+        <div className="bg-[#FAFAFB] rounded-xl p-3 text-[11px] text-[#64748B] space-y-1 border border-[#E5E7EB]">
+          <div className="flex items-center gap-1.5 font-medium text-[#172033]">
+            <Calendar className="w-3.5 h-3.5 text-[#E31827]" />
+            <span>Sunday, October 31, 2026 • Gates Open: 05:00 PM IST</span>
           </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-[#493078]" />
-            <span>Venue: JECRC University Campus, Ramchandrapura, Sitapura, Jaipur</span>
+          <div className="flex items-center gap-1.5">
+            <MapPin className="w-3.5 h-3.5 text-gray-400" />
+            <span>JECRC University Campus, Ramchandrapura, Sitapura, Jaipur</span>
           </div>
         </div>
       </div>
 
-      {/* Decorative Gold Bottom Bar */}
-      <div className="h-3 bg-gradient-to-r from-[#D9AD56] via-[#E5C174] to-[#B88F3B]" />
+      {/* Red Accent Bottom Bar */}
+      <div className="h-1.5 bg-[#E31827]" />
     </div>
   );
 };
