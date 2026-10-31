@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import path from 'path';
+import fs from 'fs';
 import { env } from './config/env.js';
 import apiRoutes from './routes/index.js';
 import { errorHandler } from './middleware/error.middleware.js';
@@ -33,6 +35,22 @@ app.use(cookieParser(env.SESSION_COOKIE_SECRET));
 
 // API router mount
 app.use('/api', apiRoutes);
+
+// Static client hosting (if built)
+const clientDistPath = fs.existsSync(path.resolve(process.cwd(), 'client/dist'))
+  ? path.resolve(process.cwd(), 'client/dist')
+  : path.resolve(process.cwd(), '../client/dist');
+
+if (fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+  app.get('*', (req, res, next) => {
+    // Only serve index.html for non-api requests
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+}
 
 // Fallback 404 handler for undefined API routes
 app.use((_req, res) => {

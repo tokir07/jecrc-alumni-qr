@@ -11,6 +11,7 @@
     "build": "npm run build:server && npm run build:client",
     "prisma:generate": "npm --prefix server run prisma:generate",
     "prisma:migrate": "npm --prefix server run prisma:migrate",
+    "prisma:push": "npm --prefix server run prisma:push",
     "prisma:seed": "npm --prefix server run prisma:seed",
     "test:server": "npm --prefix server test"
   },
