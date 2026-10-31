@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { registrationService, RegisterPayload } from '../services/registration.service';
-import { JecrcLogo, JecrcCrest } from '../components/JecrcLogo';
+import { JecrcLogo, JecrcCrest, JecrcUniversityLogo, JecrcAlumniLogo } from '../components/JecrcLogo';
 import {
   User,
   Mail,
@@ -130,8 +130,10 @@ export const RegisterPage: React.FC = () => {
     <div className="py-10 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
       {/* Institutional Top Banner */}
       <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 sm:p-8 shadow-xs mb-8 text-center">
-        <div className="flex justify-center mb-4">
-          <JecrcCrest size={56} />
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <JecrcUniversityLogo height={42} />
+          <div className="h-8 w-[1px] bg-gray-200" />
+          <JecrcAlumniLogo size={46} />
         </div>
 
         <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">

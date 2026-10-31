@@ -25,10 +25,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
   const { user, isAdmin, logout } = useAuth();
 
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all relative ${
-      isActive
-        ? 'bg-[#FEF2F2] text-[#E31827] font-semibold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-[#E31827] before:rounded-r'
-        : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100/70'
+    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all relative ${isActive
+      ? 'bg-[#FEF2F2] text-[#E31827] font-semibold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-[#E31827] before:rounded-r'
+      : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100/70'
     }`;
 
   return (
@@ -43,13 +42,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white border-r border-[#E5E7EB] flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white border-r border-[#E5E7EB] flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         {/* Brand Header */}
-        <div className="h-16 px-5 border-b border-[#E5E7EB] flex items-center justify-between">
-          <JecrcLogo size={34} />
+        <div className="h-16 px-4 border-b border-[#E5E7EB] flex items-center justify-between">
+          <JecrcLogo universityHeight={28} alumniSize={30} showSubtitle={true} />
           <button
             onClick={onClose}
             className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 lg:hidden"
@@ -158,3 +156,4 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
     </>
   );
 };
+

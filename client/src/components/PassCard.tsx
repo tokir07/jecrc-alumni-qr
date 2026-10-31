@@ -1,5 +1,5 @@
 import React from 'react';
-import { JecrcCrest } from './JecrcLogo';
+import { JecrcUniversityLogo, JecrcAlumniLogo } from './JecrcLogo';
 import { AlumniRegistrationData } from '../types';
 import { MapPin, Calendar, Award, Building, Briefcase, CheckCircle2 } from 'lucide-react';
 
@@ -15,25 +15,27 @@ export const PassCard: React.FC<PassCardProps> = ({ data, cardRef }) => {
       className="pass-print-container w-full max-w-lg mx-auto bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] shadow-xs"
     >
       {/* Top Institutional Header */}
-      <div className="bg-white p-6 border-b border-[#E5E7EB] flex items-center justify-between">
+      <div className="bg-white p-5 sm:p-6 border-b border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <JecrcCrest size={44} />
+          <JecrcUniversityLogo height={34} />
+          <div className="h-8 w-[1px] bg-gray-200 hidden sm:block" />
+          <JecrcAlumniLogo size={38} />
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest text-[#E31827]">
               JECRC UNIVERSITY • ALUMNI ASSOCIATION
             </p>
-            <h1 className="text-base font-bold text-[#172033] tracking-tight">
+            <h1 className="text-sm sm:text-base font-bold text-[#172033] tracking-tight">
               Diwali Get-Together 2026 • Official Entry Pass
             </h1>
           </div>
         </div>
 
-        <div className="text-right">
+        <div className="text-center sm:text-right shrink-0">
           <span className="text-[10px] font-mono font-bold text-[#64748B] block">
             DATE: 31 OCT 2026
           </span>
-          <span className="text-[10px] font-bold text-[#16845B] bg-[#EBF7F2] px-2 py-0.5 rounded border border-[#16845B]/20">
-            CONFIRMED
+          <span className="text-[10px] font-bold text-[#16845B] bg-[#EBF7F2] px-2.5 py-0.5 rounded border border-[#16845B]/20 inline-block mt-0.5">
+            VERIFIED PASS
           </span>
         </div>
       </div>
@@ -62,7 +64,7 @@ export const PassCard: React.FC<PassCardProps> = ({ data, cardRef }) => {
               <img
                 src={data.qrCodeDataUrl}
                 alt={`QR Pass for ${data.registrationId}`}
-                className="w-44 h-44 object-contain rounded-lg bg-white p-1"
+                className="w-44 h-44 object-contain rounded-lg bg-white p-1 shadow-2xs"
               />
             ) : (
               <div className="w-44 h-44 bg-gray-100 rounded-lg flex items-center justify-center text-xs text-gray-400">
@@ -70,7 +72,7 @@ export const PassCard: React.FC<PassCardProps> = ({ data, cardRef }) => {
               </div>
             )}
             <p className="text-[10px] text-center font-medium text-[#64748B] mt-2">
-              Present at Gate for QR Verification
+              Present at Gate for Verification
             </p>
           </div>
 

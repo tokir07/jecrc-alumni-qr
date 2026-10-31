@@ -1,93 +1,97 @@
 import React from 'react';
 
-interface JecrcLogoProps {
+interface LogoProps {
   className?: string;
   size?: number;
-  showText?: boolean;
+  height?: number;
 }
 
-export const JecrcCrest: React.FC<{ size?: number; className?: string }> = ({
-  size = 40,
+/**
+ * Official JECRC University Logo (provided by user)
+ */
+export const JecrcUniversityLogo: React.FC<LogoProps> = ({
   className = '',
+  height = 36,
 }) => {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 100 100"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-    >
-      {/* Outer Circle */}
-      <circle cx="50" cy="50" r="47" stroke="#E31827" strokeWidth="3" fill="#FFFFFF" />
-      <circle cx="50" cy="50" r="42" stroke="#E31827" strokeWidth="1" strokeDasharray="2 2" fill="none" />
-      
-      {/* Outer Ring Text Path */}
-      <path
-        id="textCircle"
-        d="M 50,50 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"
-        fill="none"
-      />
-      <text fill="#E31827" fontSize="7" fontWeight="bold" letterSpacing="1.5">
-        <textPath href="#textCircle" startOffset="18%">
-          JECRC ALUMNI
-        </textPath>
-      </text>
-
-      {/* Center Shield / Torch Symbol */}
-      <path
-        d="M50 24L65 31V48C65 58 58 66 50 70C42 66 35 58 35 48V31L50 24Z"
-        fill="#FEF2F2"
-        stroke="#E31827"
-        strokeWidth="2"
-      />
-      
-      {/* Torch Flame */}
-      <path
-        d="M50 32C50 32 54 37 54 41C54 43.5 52.2 45 50 45C47.8 45 46 43.5 46 41C46 37 50 32 50 32Z"
-        fill="#E31827"
-      />
-      {/* Inner Flame Core */}
-      <path
-        d="M50 37C50 37 52 39.5 52 41C52 42.1 51.1 43 50 43C48.9 43 48 42.1 48 41C48 39.5 50 37 50 37Z"
-        fill="#FFFFFF"
-      />
-      
-      {/* Torch Handle */}
-      <path d="M48 45H52V56H48V45Z" fill="#E31827" />
-      <path d="M46 56H54V59H46V56Z" fill="#E31827" />
-
-      {/* Decorative Laurel Leaves */}
-      <path d="M38 52C36 50 36 46 37 44" stroke="#E31827" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M62 52C64 50 64 46 63 44" stroke="#E31827" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
+    <img
+      src="/jecrc-university-logo.png"
+      alt="JECRC University"
+      style={{ height: `${height}px` }}
+      className={`object-contain ${className}`}
+      loading="eager"
+    />
   );
 };
 
-export const JecrcLogo: React.FC<JecrcLogoProps> = ({
+/**
+ * Official JECRC Alumni Association Color Logo (provided by user)
+ */
+export const JecrcAlumniLogo: React.FC<LogoProps> = ({
   className = '',
   size = 40,
-  showText = true,
 }) => {
   return (
-    <div className={`inline-flex items-center gap-3 ${className}`}>
-      <JecrcCrest size={size} />
-      {showText && (
-        <div className="flex flex-col">
-          <div className="flex items-center gap-1.5 leading-none">
-            <span className="font-bold text-sm tracking-tight text-[#E31827] uppercase">
-              JECRC
-            </span>
-            <span className="font-bold text-sm tracking-tight text-[#172033] uppercase">
+    <img
+      src="/jecrc-alumni-logo.png"
+      alt="JECRC Alumni Association"
+      style={{ width: `${size}px`, height: `${size}px` }}
+      className={`object-contain rounded-full ${className}`}
+      loading="eager"
+    />
+  );
+};
+
+/**
+ * Alias for the circular alumni crest
+ */
+export const JecrcCrest: React.FC<{ size?: number; className?: string }> = ({
+  size = 44,
+  className = '',
+}) => {
+  return <JecrcAlumniLogo size={size} className={className} />;
+};
+
+/**
+ * Combined Institutional Brand Header
+ * Shows both JECRC University and Alumni Association logos side by side
+ * exactly matching the reference screenshot top left header.
+ */
+export const JecrcCombinedLogo: React.FC<{
+  className?: string;
+  size?: number;
+  universityHeight?: number;
+  alumniSize?: number;
+  showSubtitle?: boolean;
+}> = ({
+  className = '',
+  size,
+  universityHeight = 32,
+  alumniSize = 34,
+  showSubtitle = true,
+}) => {
+  const uHeight = size ? Math.round(size * 0.85) : universityHeight;
+  const aSize = size ? Math.round(size * 0.9) : alumniSize;
+
+  return (
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <JecrcUniversityLogo height={uHeight} />
+      <div className="h-6 w-[1px] bg-gray-200" />
+      <div className="flex items-center gap-2">
+        <JecrcAlumniLogo size={aSize} />
+        {showSubtitle && (
+          <div className="flex flex-col leading-none">
+            <span className="text-[12px] font-bold text-[#E31827] uppercase tracking-tight">
               ALUMNI
             </span>
+            <span className="text-[9px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">
+              ASSOCIATION
+            </span>
           </div>
-          <span className="text-[10px] text-[#64748B] font-medium tracking-wider uppercase mt-0.5">
-            Diwali 2026 Portal
-          </span>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
+
+export const JecrcLogo = JecrcCombinedLogo;

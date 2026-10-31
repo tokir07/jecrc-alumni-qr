@@ -77,7 +77,7 @@ export const DashboardPage: React.FC = () => {
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="flex items-start gap-4">
             <div className="shrink-0 pt-0.5">
-              <JecrcCrest size={48} />
+              <JecrcCrest size={52} className="border border-gray-100 shadow-xs" />
             </div>
 
             <div>

@@ -3,7 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import { AlumniRegistrationData } from '../types';
 import { PassCard } from '../components/PassCard';
 import { registrationService } from '../services/registration.service';
-import { JecrcCrest } from '../components/JecrcLogo';
+import { JecrcCrest, JecrcUniversityLogo, JecrcAlumniLogo } from '../components/JecrcLogo';
 import {
   Printer,
   Download,
@@ -72,8 +72,10 @@ export const RegistrationSuccessPage: React.FC = () => {
     <div className="py-10 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto space-y-6">
       {!registration ? (
         <div className="bg-white rounded-2xl p-8 max-w-md mx-auto border border-[#E5E7EB] shadow-xs text-center">
-          <div className="flex justify-center mb-3">
-            <JecrcCrest size={44} />
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <JecrcUniversityLogo height={34} />
+            <div className="h-6 w-[1px] bg-gray-200" />
+            <JecrcAlumniLogo size={36} />
           </div>
           <h2 className="text-lg font-bold text-[#172033]">
             Retrieve Alumni QR Pass

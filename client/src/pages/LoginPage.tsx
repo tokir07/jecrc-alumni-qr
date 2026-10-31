@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { JecrcLogo, JecrcCrest } from '../components/JecrcLogo';
+import { JecrcLogo, JecrcCrest, JecrcUniversityLogo, JecrcAlumniLogo } from '../components/JecrcLogo';
 import { Lock, User, AlertCircle, Loader2, ShieldCheck, KeyRound, ArrowRight } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
@@ -53,8 +53,10 @@ export const LoginPage: React.FC = () => {
       <div className="max-w-md w-full space-y-6 bg-white p-8 sm:p-9 rounded-2xl border border-[#E5E7EB] shadow-xs">
         {/* Brand Header */}
         <div className="text-center">
-          <div className="flex justify-center mb-3">
-            <JecrcCrest size={52} />
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <JecrcUniversityLogo height={36} />
+            <div className="h-6 w-[1px] bg-gray-200" />
+            <JecrcAlumniLogo size={38} />
           </div>
           <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
             JECRC UNIVERSITY • STAFF PORTAL
