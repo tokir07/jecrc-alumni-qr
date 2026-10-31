@@ -1,0 +1,26 @@
+{
+  "name": "jecrc-alumni-diwali",
+  "version": "1.0.0",
+  "description": "JECRC University Alumni Diwali Get-Together 2026 - QR-Based Registration & Entry Management System",
+  "private": true,
+  "scripts": {
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "build:server": "npm --prefix server run build",
+    "build:client": "npm --prefix client run build",
+    "build": "npm run build:server && npm run build:client",
+    "prisma:generate": "npm --prefix server run prisma:generate",
+    "prisma:migrate": "npm --prefix server run prisma:migrate",
+    "prisma:seed": "npm --prefix server run prisma:seed",
+    "test:server": "npm --prefix server test"
+  },
+  "keywords": [
+    "jecrc",
+    "alumni",
+    "diwali",
+    "qr-entry",
+    "registration"
+  ],
+  "author": "JECRC Alumni Association",
+  "license": "ISC"
+}

@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  VOLUNTEER
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  role         Role     @default(VOLUNTEER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Event {
+  id            String               @id @default(uuid())
+  name          String
+  year          Int                  @default(2026)
+  eventDate     DateTime
+  venue         String
+  isActive      Boolean              @default(true)
+  createdAt     DateTime             @default(now())
+  registrations AlumniRegistration[]
+
+  @@map("events")
+}
+
+model AlumniRegistration {
+  id               String   @id @default(uuid())
+  registrationId   String   @unique
+  fullName         String
+  email            String
+  normalizedEmail  String   @unique
+  mobile           String
+  normalizedMobile String   @unique
+  currentCity      String?
+  graduationYear   Int
+  course           String
+  branch           String
+  companyName      String
+  designation      String
+  qrTokenHash      String   @unique
+  eventId          String
+  event            Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  checkIn          CheckIn?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([normalizedEmail])
+  @@index([normalizedMobile])
+  @@index([registrationId])
+  @@index([qrTokenHash])
+  @@index([graduationYear])
+  @@index([branch])
+  @@map("alumni_registrations")
+}
+
+model CheckIn {
+  id                   String             @id @default(uuid())
+  alumniRegistrationId String             @unique
+  alumniRegistration   AlumniRegistration @relation(fields: [alumniRegistrationId], references: [id], onDelete: Cascade)
+  checkedInAt          DateTime           @default(now())
+  checkedInBy          String
+  gateName             String             @default("Main Gate")
+
+  @@index([checkedInAt])
+  @@map("check_ins")
+}

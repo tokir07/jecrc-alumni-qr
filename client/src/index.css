@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#FFF9EE] text-[#101A32] font-sans antialiased min-h-screen;
+    background-image: radial-gradient(#d9ad5620 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FFF9EE;
+}
+::-webkit-scrollbar-thumb {
+  background: #D9AD56;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B88F3B;
+}
+
+/* Print Styles for QR Pass */
+@media print {
+  body {
+    background: white !important;
+    background-image: none !important;
+    color: black !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+
+  .pass-print-container {
+    box-shadow: none !important;
+    border: 2px solid #101A32 !important;
+    page-break-inside: avoid;
+    margin: 0 auto !important;
+    max-width: 600px !important;
+  }
+}
