@@ -44,7 +44,7 @@ export const PassCard: React.FC<PassCardProps> = ({ data, cardRef }) => {
 
         <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
           <span className="text-[10px] font-mono font-bold text-[#64748B]">
-            DATE: 31 OCT 2026
+            DATE: 04 NOV 2026
           </span>
           <span className="text-[9px] sm:text-[10px] font-bold text-[#16845B] bg-[#EBF7F2] px-2 py-0.5 rounded border border-[#16845B]/20 inline-block">
             VERIFIED PASS
@@ -125,11 +125,11 @@ export const PassCard: React.FC<PassCardProps> = ({ data, cardRef }) => {
         <div className="bg-[#FAFAFB] rounded-xl p-3 text-[11px] text-[#64748B] space-y-1.5 border border-[#E5E7EB]">
           <div className="flex items-start gap-1.5 font-medium text-[#172033]">
             <Calendar className="w-3.5 h-3.5 text-[#E31827] mt-0.5 shrink-0" />
-            <span>Sunday, October 31, 2026 • Gates Open: 05:00 PM IST</span>
+            <span>Wednesday, November 4, 2026 • Gates Open: 11:00 AM IST</span>
           </div>
           <div className="flex items-start gap-1.5">
             <MapPin className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-            <span>JECRC University Campus, Ramchandrapura, Sitapura, Jaipur</span>
+            <span>Entry from Gate 01 (Main Gate) • JECRC University Campus, Ramchandrapura, Sitapura, Jaipur</span>
           </div>
         </div>
       </div>

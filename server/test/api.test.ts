@@ -312,7 +312,7 @@ async function runTestSuite() {
     const firstCheckIn = await request(
       'POST',
       '/api/checkin/manual',
-      { registrationId: regId, gateName: 'Gate 1 - North' },
+      { registrationId: regId, gateName: 'Gate 01 (Main Gate)' },
       { Authorization: `Bearer ${volunteerToken}` }
     );
     assert(firstCheckIn.status === 200, 'First entry check-in succeeds with 200');

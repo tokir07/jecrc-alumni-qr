@@ -10,7 +10,7 @@ export class CheckInService {
   async verifyAndCheckIn(
     tokenPayload: string,
     checkedInBy: string,
-    gateName = 'Main Gate'
+    gateName = 'Gate 01 (Main Gate)'
   ): Promise<VerificationResponse> {
     const tokenHash = hashQrToken(tokenPayload);
 
@@ -138,7 +138,7 @@ export class CheckInService {
   async manualCheckInByRegistrationId(
     registrationId: string,
     checkedInBy: string,
-    gateName = 'Main Gate'
+    gateName = 'Gate 01 (Main Gate)'
   ): Promise<VerificationResponse> {
     const formattedId = registrationId.trim().toUpperCase();
 

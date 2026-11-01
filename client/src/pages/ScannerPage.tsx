@@ -32,7 +32,7 @@ export const ScannerPage: React.FC = () => {
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [manualId, setManualId] = useState<string>('');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
-  const [gateName, setGateName] = useState<string>('Main Gate');
+  const [gateName, setGateName] = useState<string>('Gate 01 (Main Gate)');
   const [cameraError, setCameraError] = useState<string | null>(null);
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -265,9 +265,8 @@ export const ScannerPage: React.FC = () => {
               onChange={(e) => setGateName(e.target.value)}
               className="w-full sm:w-auto bg-white border border-[#E5E7EB] rounded-xl px-3 py-2 text-xs font-semibold text-[#172033] focus:border-[#E31827] outline-none min-h-[44px]"
             >
-              <option value="Main Gate">Main Gate</option>
-              <option value="Gate 1 (North)">Gate 1 (North)</option>
-              <option value="Gate 2 (South)">Gate 2 (South)</option>
+              <option value="Gate 01 (Main Gate)">Gate 01 (Main Gate)</option>
+              <option value="Gate 01 (Fast Track)">Gate 01 (Fast Track)</option>
               <option value="VIP / Faculty Gate">VIP / Faculty Gate</option>
             </select>
           </div>
@@ -419,7 +418,7 @@ export const ScannerPage: React.FC = () => {
                       : 'Earlier Today'}
                   </p>
                   <p className="text-xs text-[#64748B] mt-0.5">
-                    Gate: {result.gateName || 'Main Gate'} • Verified By: {result.checkedInBy || 'Volunteer'}
+                    Gate: {result.gateName || 'Gate 01 (Main Gate)'} • Verified By: {result.checkedInBy || 'Volunteer'}
                   </p>
                 </div>
 

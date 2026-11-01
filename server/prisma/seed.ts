@@ -22,16 +22,16 @@ async function main() {
     update: {
       name: 'JECRC University Alumni Diwali Get-Together 2026',
       year: 2026,
-      eventDate: new Date('2026-11-01T17:00:00.000Z'),
-      venue: 'JECRC University Main Amphitheatre & Central Lawns, Jaipur',
+      eventDate: new Date('2026-11-04T05:30:00.000Z'), // Wednesday, 4 Nov 2026, 11:00 AM IST
+      venue: 'JECRC University Campus, Ramchandrapura, Sitapura, Jaipur (Entry from Gate 01 - Main Gate)',
       isActive: true,
     },
     create: {
       id: 'jecrc-diwali-2026-main-event',
       name: 'JECRC University Alumni Diwali Get-Together 2026',
       year: 2026,
-      eventDate: new Date('2026-11-01T17:00:00.000Z'),
-      venue: 'JECRC University Main Amphitheatre & Central Lawns, Jaipur',
+      eventDate: new Date('2026-11-04T05:30:00.000Z'), // Wednesday, 4 Nov 2026, 11:00 AM IST
+      venue: 'JECRC University Campus, Ramchandrapura, Sitapura, Jaipur (Entry from Gate 01 - Main Gate)',
       isActive: true,
     },
   });
