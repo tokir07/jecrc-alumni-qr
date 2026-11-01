@@ -104,3 +104,4 @@ ALTER TABLE "alumni_registrations" ADD CONSTRAINT "alumni_registrations_eventId_
 
 -- AddForeignKey
 ALTER TABLE "check_ins" ADD CONSTRAINT "check_ins_alumniRegistrationId_fkey" FOREIGN KEY ("alumniRegistrationId") REFERENCES "alumni_registrations"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
