@@ -47,8 +47,11 @@ model AlumniRegistration {
   normalizedMobile String   @unique
   currentCity      String?
   graduationYear   Int
+  degree           String   @default("B.Tech")
   course           String
-  branch           String
+  branch           String   @default("")
+  otherDegree      String?
+  otherCourse      String?
   companyName      String
   designation      String
   qrTokenHash      String   @unique
@@ -63,6 +66,8 @@ model AlumniRegistration {
   @@index([registrationId])
   @@index([qrTokenHash])
   @@index([graduationYear])
+  @@index([degree])
+  @@index([course])
   @@index([branch])
   @@map("alumni_registrations")
 }

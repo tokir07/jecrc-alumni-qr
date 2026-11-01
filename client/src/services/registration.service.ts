@@ -1,17 +1,5 @@
 import { api } from './api';
-import { AlumniRegistrationData } from '../types';
-
-export interface RegisterPayload {
-  fullName: string;
-  email: string;
-  mobile: string;
-  currentCity?: string;
-  graduationYear: number;
-  course: string;
-  branch: string;
-  companyName: string;
-  designation: string;
-}
+import { AlumniRegistrationData, RegisterPayload } from '../types';
 
 export const registrationService = {
   async register(data: RegisterPayload): Promise<AlumniRegistrationData> {
@@ -24,3 +12,4 @@ export const registrationService = {
     return res.data.data;
   },
 };
+export type { RegisterPayload };

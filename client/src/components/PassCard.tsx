@@ -9,6 +9,18 @@ interface PassCardProps {
 }
 
 export const PassCard: React.FC<PassCardProps> = ({ data, cardRef }) => {
+  const displayDegree =
+    data.degree === 'Other / Not Listed' && data.otherDegree
+      ? data.otherDegree
+      : data.degree || data.course;
+
+  const displayCourse =
+    data.course === 'Other / Not Listed' && data.otherCourse
+      ? data.otherCourse
+      : data.degree
+      ? data.course
+      : data.branch;
+
   return (
     <div
       ref={cardRef}
@@ -84,7 +96,7 @@ export const PassCard: React.FC<PassCardProps> = ({ data, cardRef }) => {
                 Class of {data.graduationYear}
               </p>
               <p className="text-[#64748B] text-[11px] break-words">
-                {data.course} • {data.branch}
+                {displayDegree} • {displayCourse}
               </p>
             </div>
 

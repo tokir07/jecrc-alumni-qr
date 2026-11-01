@@ -6,6 +6,8 @@ export interface RegistrationFilterParams {
   limit?: number;
   search?: string;
   graduationYear?: number;
+  degree?: string;
+  course?: string;
   branch?: string;
   company?: string;
   status?: 'ALL' | 'CHECKED_IN' | 'PENDING';

@@ -13,7 +13,10 @@ export interface AlumniRegistrationData {
   mobile: string;
   currentCity?: string | null;
   graduationYear: number;
+  degree: string;
   course: string;
+  otherDegree?: string | null;
+  otherCourse?: string | null;
   branch: string;
   companyName: string;
   designation: string;
@@ -27,6 +30,21 @@ export interface AlumniRegistrationData {
   checkedInAt?: string | null;
 }
 
+export interface RegisterPayload {
+  fullName: string;
+  email: string;
+  mobile: string;
+  currentCity?: string;
+  graduationYear: number;
+  degree: string;
+  course: string;
+  otherDegree?: string;
+  otherCourse?: string;
+  branch?: string;
+  companyName: string;
+  designation: string;
+}
+
 export interface VerificationResult {
   status: 'SUCCESS' | 'ALREADY_CHECKED_IN' | 'INVALID';
   message: string;
@@ -34,7 +52,10 @@ export interface VerificationResult {
     fullName: string;
     registrationId: string;
     graduationYear: number;
+    degree?: string;
     course?: string;
+    otherDegree?: string | null;
+    otherCourse?: string | null;
     branch: string;
     companyName: string;
     designation: string;
@@ -58,6 +79,10 @@ export interface RecentCheckIn {
   name: string;
   registrationId: string;
   batch: number;
+  degree?: string;
+  course?: string;
+  otherDegree?: string | null;
+  otherCourse?: string | null;
   branch: string;
   company: string;
   designation: string;
@@ -85,7 +110,10 @@ export interface RegistrationListItem {
   mobile: string;
   currentCity: string;
   graduationYear: number;
+  degree: string;
   course: string;
+  otherDegree?: string | null;
+  otherCourse?: string | null;
   branch: string;
   companyName: string;
   designation: string;

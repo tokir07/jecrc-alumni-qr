@@ -136,8 +136,8 @@ async function runTestSuite() {
       email: 'not-an-email',
       mobile: '9876543210',
       graduationYear: 2020,
-      course: 'B.Tech',
-      branch: 'Computer Science & Engineering',
+      degree: 'B.Tech',
+      course: 'Computer Science & Engineering (CSE)',
       companyName: 'Infosys',
       designation: 'Software Engineer',
     });
@@ -148,14 +148,67 @@ async function runTestSuite() {
       email: 'rahul.test@example.com',
       mobile: '12345',
       graduationYear: 2020,
-      course: 'B.Tech',
-      branch: 'Computer Science & Engineering',
+      degree: 'B.Tech',
+      course: 'Computer Science & Engineering (CSE)',
       companyName: 'Infosys',
       designation: 'Software Engineer',
     });
     assert(invalidMobile.status === 400, 'Invalid mobile number rejected with 400');
 
-    // 4. Successful Registration Flow
+    // Academic Structure Dependent Validation Tests
+    console.log('\n[Phase C2: Academic Structure Validation (Degree & Course)]');
+    const invalidDegree = await request('POST', '/api/registrations', {
+      fullName: 'Sunil Verma',
+      email: 'sunil.verma@example.com',
+      mobile: '9829012345',
+      graduationYear: 2020,
+      degree: 'NonExistentDegree123',
+      course: 'Computer Science & Engineering (CSE)',
+      companyName: 'Tech Mahindra',
+      designation: 'Developer',
+    });
+    assert(invalidDegree.status === 400, 'Unrecognized degree rejected with 400');
+
+    const incompatiblePair = await request('POST', '/api/registrations', {
+      fullName: 'Sunil Verma',
+      email: 'sunil.verma2@example.com',
+      mobile: '9829012346',
+      graduationYear: 2020,
+      degree: 'BBA',
+      course: 'Mechanical Engineering', // Incompatible pair
+      companyName: 'Tech Mahindra',
+      designation: 'Developer',
+    });
+    assert(incompatiblePair.status === 400, 'Incompatible Degree-Course combination rejected with 400');
+
+    const missingOtherDegreeText = await request('POST', '/api/registrations', {
+      fullName: 'Kavita Joshi',
+      email: 'kavita.joshi@example.com',
+      mobile: '9829012347',
+      graduationYear: 2022,
+      degree: 'Other / Not Listed',
+      otherDegree: '', // Missing custom text
+      course: 'Other / Not Listed',
+      otherCourse: 'Aerospace Engineering',
+      companyName: 'ISRO',
+      designation: 'Scientist',
+    });
+    assert(missingOtherDegreeText.status === 400, 'Empty otherDegree custom text rejected with 400');
+
+    const missingOtherCourseText = await request('POST', '/api/registrations', {
+      fullName: 'Kavita Joshi',
+      email: 'kavita.joshi2@example.com',
+      mobile: '9829012348',
+      graduationYear: 2022,
+      degree: 'B.Tech',
+      course: 'Other / Not Listed',
+      otherCourse: '', // Missing custom text
+      companyName: 'DRDO',
+      designation: 'Scientist',
+    });
+    assert(missingOtherCourseText.status === 400, 'Empty otherCourse custom text rejected with 400');
+
+    // 4. Successful Registration Flow (Standard Academic Structure)
     console.log('\n[Phase D: Successful Registration & QR Generation]');
     const uniqueEmail = `test.alumni.${Date.now()}@jecrc.ac.in`;
     const uniqueMobile = `98${Math.floor(10000000 + Math.random() * 90000000)}`;
@@ -166,8 +219,8 @@ async function runTestSuite() {
       mobile: uniqueMobile,
       currentCity: 'Jaipur',
       graduationYear: 2018,
-      course: 'B.Tech',
-      branch: 'Computer Science & Engineering',
+      degree: 'B.Tech',
+      course: 'Computer Science & Engineering (CSE)',
       companyName: 'Google',
       designation: 'Senior Cloud Engineer',
     });
@@ -178,11 +231,45 @@ async function runTestSuite() {
       `Registration ID generated properly: ${regRes.data.data.registrationId}`
     );
     assert(
+      regRes.data.data.degree === 'B.Tech',
+      'Degree stored and returned correctly in confirmation'
+    );
+    assert(
+      regRes.data.data.course === 'Computer Science & Engineering (CSE)',
+      'Course stored and returned correctly in confirmation'
+    );
+    assert(
       typeof regRes.data.data.qrCodeDataUrl === 'string' &&
         regRes.data.data.qrCodeDataUrl.startsWith('data:image/png;base64,'),
       'QR Code base64 Data URL generated cleanly'
     );
     const regId = regRes.data.data.registrationId;
+
+    // 4b. Successful Registration with 'Other / Not Listed' Academic Structure
+    const otherEmail = `test.other.${Date.now()}@jecrc.ac.in`;
+    const otherMobile = `97${Math.floor(10000000 + Math.random() * 90000000)}`;
+    const otherRegRes = await request('POST', '/api/registrations', {
+      fullName: 'Vikramaditya Rathore',
+      email: otherEmail,
+      mobile: otherMobile,
+      currentCity: 'Udaipur',
+      graduationYear: 2021,
+      degree: 'Other / Not Listed',
+      otherDegree: 'B.Voc Renewable Energy',
+      course: 'Other / Not Listed',
+      otherCourse: 'Solar Microgrids & Storage',
+      companyName: 'Tata Power',
+      designation: 'Energy Specialist',
+    });
+    assert(otherRegRes.status === 201, 'Registration with custom Other Degree & Course succeeds (201)');
+    assert(
+      otherRegRes.data.data.otherDegree === 'B.Voc Renewable Energy',
+      'otherDegree preserved correctly in response'
+    );
+    assert(
+      otherRegRes.data.data.otherCourse === 'Solar Microgrids & Storage',
+      'otherCourse preserved correctly in response'
+    );
 
     // 5. Duplicate Registration Prevention
     console.log('\n[Phase E: Duplicate Registration Prevention]');
@@ -191,8 +278,8 @@ async function runTestSuite() {
       email: uniqueEmail, // Duplicate
       mobile: '9998887776',
       graduationYear: 2021,
-      course: 'BCA',
-      branch: 'IT',
+      degree: 'BCA',
+      course: 'Artificial Intelligence',
       companyName: 'TCS',
       designation: 'Developer',
     });
@@ -203,8 +290,8 @@ async function runTestSuite() {
       email: `other.${Date.now()}@jecrc.ac.in`,
       mobile: uniqueMobile, // Duplicate
       graduationYear: 2021,
-      course: 'BCA',
-      branch: 'IT',
+      degree: 'BCA',
+      course: 'Artificial Intelligence',
       companyName: 'TCS',
       designation: 'Developer',
     });
@@ -215,6 +302,8 @@ async function runTestSuite() {
     const lookupRes = await request('GET', `/api/registrations/${regId}`);
     assert(lookupRes.status === 200, 'Safe lookup by registration ID returns 200');
     assert(lookupRes.data.data.fullName === 'Priya Agarwal', 'Name matches in lookup');
+    assert(lookupRes.data.data.degree === 'B.Tech', 'Degree present in public lookup');
+    assert(lookupRes.data.data.course === 'Computer Science & Engineering (CSE)', 'Course present in public lookup');
     assert(lookupRes.data.data.qrTokenHash === undefined, 'qrTokenHash is strictly protected');
 
     // 7. QR Verification & Check-in Flow (Gate entry)
@@ -228,6 +317,7 @@ async function runTestSuite() {
     );
     assert(firstCheckIn.status === 200, 'First entry check-in succeeds with 200');
     assert(firstCheckIn.data.status === 'SUCCESS', 'Check-in status is SUCCESS');
+    assert(firstCheckIn.data.alumni.degree === 'B.Tech', 'Check-in payload returns degree');
 
     // Duplicate Check-in Attempt
     const secondCheckIn = await request(
@@ -286,8 +376,10 @@ async function runTestSuite() {
     });
     assert(adminExport.status === 200, 'Admin Export CSV succeeds with 200');
     assert(
-      typeof adminExport.data === 'string' && adminExport.data.includes('Registration ID'),
-      'CSV contains proper header row'
+      typeof adminExport.data === 'string' &&
+        adminExport.data.includes('Degree') &&
+        adminExport.data.includes('Course'),
+      'CSV contains Degree and Course header columns'
     );
   } finally {
     serverInstance!.close();

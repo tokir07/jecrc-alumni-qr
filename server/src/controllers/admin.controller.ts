@@ -31,6 +31,8 @@ export async function getRegistrations(
     const graduationYear = req.query.graduationYear
       ? parseInt(req.query.graduationYear as string, 10)
       : undefined;
+    const degree = (req.query.degree as string) || undefined;
+    const course = (req.query.course as string) || undefined;
     const branch = (req.query.branch as string) || undefined;
     const company = (req.query.company as string) || undefined;
     const status = (req.query.status as 'ALL' | 'CHECKED_IN' | 'PENDING') || 'ALL';
@@ -40,6 +42,8 @@ export async function getRegistrations(
       limit,
       search,
       graduationYear,
+      degree,
+      course,
       branch,
       company,
       status,

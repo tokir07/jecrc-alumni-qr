@@ -9,6 +9,8 @@ export interface RegistrationQueryParams {
   limit?: number;
   search?: string;
   graduationYear?: number;
+  degree?: string;
+  course?: string;
   branch?: string;
   company?: string;
   status?: 'ALL' | 'CHECKED_IN' | 'PENDING';
@@ -45,6 +47,10 @@ export class AdminService {
             fullName: true,
             registrationId: true,
             graduationYear: true,
+            degree: true,
+            course: true,
+            otherDegree: true,
+            otherCourse: true,
             branch: true,
             companyName: true,
             designation: true,
@@ -58,6 +64,10 @@ export class AdminService {
       name: c.alumniRegistration.fullName,
       registrationId: c.alumniRegistration.registrationId,
       batch: c.alumniRegistration.graduationYear,
+      degree: c.alumniRegistration.degree,
+      course: c.alumniRegistration.course,
+      otherDegree: c.alumniRegistration.otherDegree,
+      otherCourse: c.alumniRegistration.otherCourse,
       branch: c.alumniRegistration.branch,
       company: c.alumniRegistration.companyName,
       designation: c.alumniRegistration.designation,
@@ -118,7 +128,7 @@ export class AdminService {
 
     const where: Prisma.AlumniRegistrationWhereInput = {};
 
-    // Search filter across name, email, mobile, and registration ID
+    // Search filter across name, email, mobile, registration ID, degree, course
     if (params.search && params.search.trim()) {
       const search = params.search.trim();
       where.OR = [
@@ -127,12 +137,24 @@ export class AdminService {
         { mobile: { contains: search } },
         { registrationId: { contains: search, mode: 'insensitive' } },
         { companyName: { contains: search, mode: 'insensitive' } },
+        { degree: { contains: search, mode: 'insensitive' } },
+        { course: { contains: search, mode: 'insensitive' } },
+        { otherDegree: { contains: search, mode: 'insensitive' } },
+        { otherCourse: { contains: search, mode: 'insensitive' } },
       ];
     }
 
     // Specific filters
     if (params.graduationYear) {
       where.graduationYear = params.graduationYear;
+    }
+
+    if (params.degree && params.degree !== 'ALL') {
+      where.degree = { equals: params.degree, mode: 'insensitive' };
+    }
+
+    if (params.course && params.course !== 'ALL') {
+      where.course = { equals: params.course, mode: 'insensitive' };
     }
 
     if (params.branch && params.branch !== 'ALL') {
@@ -176,7 +198,10 @@ export class AdminService {
       mobile: item.mobile,
       currentCity: item.currentCity || '-',
       graduationYear: item.graduationYear,
+      degree: item.degree,
       course: item.course,
+      otherDegree: item.otherDegree,
+      otherCourse: item.otherCourse,
       branch: item.branch,
       companyName: item.companyName,
       designation: item.designation,
@@ -246,7 +271,10 @@ export class AdminService {
       updateData.currentCity = input.currentCity ? input.currentCity.trim() : null;
     }
     if (input.graduationYear) updateData.graduationYear = input.graduationYear;
+    if (input.degree) updateData.degree = input.degree.trim();
     if (input.course) updateData.course = input.course.trim();
+    if (input.otherDegree !== undefined) updateData.otherDegree = input.otherDegree ? input.otherDegree.trim() : null;
+    if (input.otherCourse !== undefined) updateData.otherCourse = input.otherCourse ? input.otherCourse.trim() : null;
     if (input.branch) updateData.branch = input.branch.trim();
     if (input.companyName) updateData.companyName = input.companyName.trim();
     if (input.designation) updateData.designation = input.designation.trim();
@@ -277,8 +305,8 @@ export class AdminService {
       'Mobile',
       'Current City',
       'Graduation Year',
+      'Degree',
       'Course',
-      'Branch',
       'Company',
       'Designation',
       'Registration Date (IST)',
@@ -298,23 +326,34 @@ export class AdminService {
       return `"${val.replace(/"/g, '""')}"`;
     };
 
-    const rows = registrations.map((r) => [
-      escapeCsv(r.registrationId),
-      escapeCsv(r.fullName),
-      escapeCsv(r.email),
-      escapeCsv(r.mobile),
-      escapeCsv(r.currentCity || ''),
-      escapeCsv(r.graduationYear),
-      escapeCsv(r.course),
-      escapeCsv(r.branch),
-      escapeCsv(r.companyName),
-      escapeCsv(r.designation),
-      escapeCsv(formatToIST(r.createdAt)),
-      escapeCsv(r.checkIn ? 'CHECKED IN' : 'PENDING'),
-      escapeCsv(r.checkIn ? formatToIST(r.checkIn.checkedInAt) : ''),
-      escapeCsv(r.checkIn?.gateName || ''),
-      escapeCsv(r.checkIn?.checkedInBy || ''),
-    ]);
+    const rows = registrations.map((r) => {
+      const displayDegree =
+        r.degree === 'Other / Not Listed' && r.otherDegree
+          ? `${r.degree} (${r.otherDegree})`
+          : r.degree;
+      const displayCourse =
+        r.course === 'Other / Not Listed' && r.otherCourse
+          ? `${r.course} (${r.otherCourse})`
+          : r.course;
+
+      return [
+        escapeCsv(r.registrationId),
+        escapeCsv(r.fullName),
+        escapeCsv(r.email),
+        escapeCsv(r.mobile),
+        escapeCsv(r.currentCity || ''),
+        escapeCsv(r.graduationYear),
+        escapeCsv(displayDegree),
+        escapeCsv(displayCourse),
+        escapeCsv(r.companyName),
+        escapeCsv(r.designation),
+        escapeCsv(formatToIST(r.createdAt)),
+        escapeCsv(r.checkIn ? 'CHECKED IN' : 'PENDING'),
+        escapeCsv(r.checkIn ? formatToIST(r.checkIn.checkedInAt) : ''),
+        escapeCsv(r.checkIn?.gateName || ''),
+        escapeCsv(r.checkIn?.checkedInBy || ''),
+      ];
+    });
 
     return [headers.join(','), ...rows.map((row) => row.join(','))].join('\r\n');
   }

@@ -3,6 +3,7 @@ import { adminService, RegistrationFilterParams } from '../services/admin.servic
 import { authService } from '../services/auth.service';
 import { RegistrationListItem, Pagination, User } from '../types';
 import { StatusBadge } from '../components/StatusBadge';
+import { JECRC_DEGREES } from '../data/academicStructure';
 import {
   Search,
   Download,
@@ -33,7 +34,7 @@ export const RegistrationsPage: React.FC = () => {
   const isAttendancePage = location.pathname === '/admin/attendance';
   const searchParams = new URLSearchParams(location.search);
   const initialSearch = searchParams.get('search') || '';
-  const initialBranch = searchParams.get('branch') || 'ALL';
+  const initialDegree = searchParams.get('degree') || 'ALL';
 
   const [registrations, setRegistrations] = useState<RegistrationListItem[]>([]);
   const [pagination, setPagination] = useState<Pagination>({
@@ -47,7 +48,7 @@ export const RegistrationsPage: React.FC = () => {
   // Filters state (defaults to CHECKED_IN on attendance page)
   const [search, setSearch] = useState(initialSearch);
   const [graduationYear, setGraduationYear] = useState<string>('');
-  const [branch, setBranch] = useState<string>(initialBranch);
+  const [degree, setDegree] = useState<string>(initialDegree);
   const [status, setStatus] = useState<'ALL' | 'CHECKED_IN' | 'PENDING'>(
     isAttendancePage ? 'CHECKED_IN' : 'ALL'
   );
@@ -77,7 +78,7 @@ export const RegistrationsPage: React.FC = () => {
           limit: 15,
           search: search.trim() || undefined,
           graduationYear: graduationYear ? parseInt(graduationYear, 10) : undefined,
-          branch: branch !== 'ALL' ? branch : undefined,
+          degree: degree !== 'ALL' ? degree : undefined,
           status,
         };
 
@@ -90,7 +91,7 @@ export const RegistrationsPage: React.FC = () => {
         setLoading(false);
       }
     },
-    [search, graduationYear, branch, status]
+    [search, graduationYear, degree, status]
   );
 
   useEffect(() => {
@@ -123,8 +124,10 @@ export const RegistrationsPage: React.FC = () => {
       mobile: item.mobile,
       currentCity: item.currentCity === '-' ? '' : item.currentCity,
       graduationYear: item.graduationYear,
+      degree: item.degree,
       course: item.course,
-      branch: item.branch,
+      otherDegree: item.otherDegree || '',
+      otherCourse: item.otherCourse || '',
       companyName: item.companyName,
       designation: item.designation,
     });
@@ -226,7 +229,7 @@ export const RegistrationsPage: React.FC = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, email, mobile, ID..."
+              placeholder="Search by name, email, mobile, ID, course..."
               className="w-full pl-9 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] focus:ring-1 focus:ring-[#E31827]/20 outline-none text-[#172033] bg-[#FAFAFB]"
             />
           </div>
@@ -247,20 +250,19 @@ export const RegistrationsPage: React.FC = () => {
             </select>
           </div>
 
-          {/* Branch Filter */}
+          {/* Degree Filter (Official JECRC Academic Structure) */}
           <div>
             <select
-              value={branch}
-              onChange={(e) => setBranch(e.target.value)}
+              value={degree}
+              onChange={(e) => setDegree(e.target.value)}
               className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
             >
-              <option value="ALL">All Branches</option>
-              <option value="Computer Science & Engineering">CSE</option>
-              <option value="Information Technology">IT</option>
-              <option value="Electronics & Communication Engineering">ECE</option>
-              <option value="Mechanical Engineering">Mechanical</option>
-              <option value="Civil Engineering">Civil</option>
-              <option value="School of Management">Management</option>
+              <option value="ALL">All Degrees</option>
+              {JECRC_DEGREES.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -308,9 +310,13 @@ export const RegistrationsPage: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-2 text-xs text-[#64748B] bg-[#FAFAFB] p-2.5 rounded-xl border border-[#E5E7EB]/60">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Batch & Branch</span>
-                    <span className="font-semibold text-[#172033]">Class of {item.graduationYear}</span>
-                    <span className="block text-[11px] truncate">{item.branch}</span>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Degree & Course</span>
+                    <span className="font-semibold text-[#172033]">
+                      {item.degree === 'Other / Not Listed' && item.otherDegree ? item.otherDegree : item.degree}
+                    </span>
+                    <span className="block text-[11px] truncate text-[#64748B]">
+                      {item.course === 'Other / Not Listed' && item.otherCourse ? item.otherCourse : item.course}
+                    </span>
                   </div>
                   <div>
                     <span className="text-[10px] uppercase font-bold text-gray-400 block">Organization</span>
@@ -369,7 +375,8 @@ export const RegistrationsPage: React.FC = () => {
                 <th className="px-5 py-3">Registration ID</th>
                 <th className="px-5 py-3">Full Name</th>
                 <th className="px-5 py-3">Contact (Email & Phone)</th>
-                <th className="px-5 py-3">Batch & Branch</th>
+                <th className="px-5 py-3">Degree & Course</th>
+                <th className="px-5 py-3">Batch</th>
                 <th className="px-5 py-3">Company & Designation</th>
                 <th className="px-5 py-3">City</th>
                 <th className="px-5 py-3">Status</th>
@@ -379,7 +386,7 @@ export const RegistrationsPage: React.FC = () => {
             <tbody className="divide-y divide-[#E5E7EB] text-[#172033]">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-10 text-gray-400">
+                  <td colSpan={9} className="text-center py-10 text-gray-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#E31827]" />
                     <span>Loading alumni records...</span>
                   </td>
@@ -399,11 +406,18 @@ export const RegistrationsPage: React.FC = () => {
                     </td>
                     <td className="px-5 py-3.5 text-xs">
                       <span className="font-semibold text-[#172033]">
-                        Class of {item.graduationYear}
+                        {item.degree === 'Other / Not Listed' && item.otherDegree
+                          ? item.otherDegree
+                          : item.degree}
                       </span>
-                      <span className="text-[#64748B] block text-[11px] truncate max-w-[150px]">
-                        {item.branch}
+                      <span className="text-[#64748B] block text-[11px] truncate max-w-[170px]">
+                        {item.course === 'Other / Not Listed' && item.otherCourse
+                          ? item.otherCourse
+                          : item.course}
                       </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-xs font-mono text-gray-600">
+                      Class of {item.graduationYear}
                     </td>
                     <td className="px-5 py-3.5 text-xs">
                       <div className="font-semibold text-[#172033]">{item.companyName}</div>
@@ -440,7 +454,7 @@ export const RegistrationsPage: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="text-center py-10 text-gray-400">
+                  <td colSpan={9} className="text-center py-10 text-gray-400">
                     No alumni registrations matched your filter criteria.
                   </td>
                 </tr>
@@ -509,14 +523,24 @@ export const RegistrationsPage: React.FC = () => {
                   <p className="font-mono font-medium text-[#172033] mt-0.5">{selectedAlumni.mobile}</p>
                 </div>
                 <div>
-                  <p className="text-[#64748B] text-[11px] font-semibold">Graduation Batch & Course</p>
+                  <p className="text-[#64748B] text-[11px] font-semibold">Graduation Batch</p>
                   <p className="font-medium text-[#172033] mt-0.5">
-                    Class of {selectedAlumni.graduationYear} ({selectedAlumni.course})
+                    Class of {selectedAlumni.graduationYear}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[#64748B] text-[11px] font-semibold">Branch</p>
-                  <p className="font-medium text-[#172033] mt-0.5">{selectedAlumni.branch}</p>
+                  <p className="text-[#64748B] text-[11px] font-semibold">Degree</p>
+                  <p className="font-medium text-[#172033] mt-0.5">
+                    {selectedAlumni.degree}
+                    {selectedAlumni.otherDegree ? ` (${selectedAlumni.otherDegree})` : ''}
+                  </p>
+                </div>
+                <div className="sm:col-span-2">
+                  <p className="text-[#64748B] text-[11px] font-semibold">Course / Specialization</p>
+                  <p className="font-medium text-[#172033] mt-0.5">
+                    {selectedAlumni.course}
+                    {selectedAlumni.otherCourse ? ` (${selectedAlumni.otherCourse})` : ''}
+                  </p>
                 </div>
                 <div>
                   <p className="text-[#64748B] text-[11px] font-semibold">Organization</p>
@@ -649,15 +673,30 @@ export const RegistrationsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-[#172033] font-semibold mb-1">Branch</label>
-                  <input
-                    type="text"
-                    value={editForm.branch || ''}
-                    onChange={(e) => setEditForm({ ...editForm, branch: e.target.value })}
-                    required
-                    className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none"
-                  />
+                  <label className="block text-[#172033] font-semibold mb-1">Degree</label>
+                  <select
+                    value={editForm.degree || ''}
+                    onChange={(e) => setEditForm({ ...editForm, degree: e.target.value })}
+                    className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
+                  >
+                    {JECRC_DEGREES.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[#172033] font-semibold mb-1">Course / Programme</label>
+                <input
+                  type="text"
+                  value={editForm.course || ''}
+                  onChange={(e) => setEditForm({ ...editForm, course: e.target.value })}
+                  required
+                  className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none"
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

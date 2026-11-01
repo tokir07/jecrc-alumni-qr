@@ -1,57 +1,27 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { registrationService, RegisterPayload } from '../services/registration.service';
-import { JecrcLogo, JecrcCrest, JecrcUniversityLogo, JecrcAlumniLogo } from '../components/JecrcLogo';
+import { JecrcUniversityLogo, JecrcAlumniLogo } from '../components/JecrcLogo';
+import { SearchableSelect } from '../components/SearchableSelect';
+import {
+  JECRC_DEGREES,
+  getCoursesForDegree,
+  OTHER_OPTION,
+} from '../data/academicStructure';
 import {
   User,
   Mail,
   Phone,
   MapPin,
   GraduationCap,
-  BookOpen,
   Building,
   Briefcase,
   AlertCircle,
   Loader2,
   CheckCircle2,
   ArrowRight,
-  ShieldCheck,
-  Calendar,
+  Sparkles,
 } from 'lucide-react';
-
-const DEGREES = [
-  'B.Tech - Computer Science & Engineering',
-  'B.Tech - Information Technology',
-  'B.Tech - Electronics & Communication',
-  'B.Tech - Mechanical Engineering',
-  'B.Tech - Civil Engineering',
-  'B.Tech - Electrical Engineering',
-  'B.Tech - AI & Data Science',
-  'BCA (Bachelor of Computer Applications)',
-  'MCA (Master of Computer Applications)',
-  'M.Tech',
-  'MBA (Master of Business Administration)',
-  'BBA (Bachelor of Business Administration)',
-  'B.Com / M.Com',
-  'B.Sc / M.Sc',
-  'Ph.D. / Doctorate',
-  'Other Degree',
-];
-
-const BRANCHES = [
-  'Computer Science & Engineering',
-  'Information Technology',
-  'Artificial Intelligence & Data Science',
-  'Electronics & Communication Engineering',
-  'Electrical Engineering',
-  'Mechanical Engineering',
-  'Civil Engineering',
-  'Computer Applications',
-  'School of Management',
-  'School of Sciences',
-  'School of Humanities',
-  'Other Department',
-];
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -62,8 +32,10 @@ export const RegisterPage: React.FC = () => {
     mobile: '',
     currentCity: '',
     graduationYear: 2020,
-    course: 'B.Tech - Computer Science & Engineering',
-    branch: 'Computer Science & Engineering',
+    degree: 'B.Tech',
+    course: 'Computer Science & Engineering (CSE)',
+    otherDegree: '',
+    otherCourse: '',
     companyName: '',
     designation: '',
   });
@@ -74,7 +46,9 @@ export const RegisterPage: React.FC = () => {
   const currentYear = 2026;
   const years = Array.from({ length: 26 }, (_, i) => currentYear - i); // 2026 down to 2001
 
-  const handleChange = (
+  const availableCourses = getCoursesForDegree(formData.degree);
+
+  const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
@@ -84,10 +58,40 @@ export const RegisterPage: React.FC = () => {
     }));
   };
 
+  const handleDegreeChange = (selectedDegree: string) => {
+    setFormData((prev) => {
+      if (selectedDegree === OTHER_OPTION) {
+        return {
+          ...prev,
+          degree: selectedDegree,
+          course: OTHER_OPTION,
+          otherDegree: '',
+          otherCourse: '',
+        };
+      }
+      return {
+        ...prev,
+        degree: selectedDegree,
+        course: '', // Reset dependent course
+        otherDegree: '',
+        otherCourse: '',
+      };
+    });
+  };
+
+  const handleCourseChange = (selectedCourse: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      course: selectedCourse,
+      otherCourse: selectedCourse === OTHER_OPTION ? prev.otherCourse : '',
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
+    // Personal & Contact Validation
     if (!formData.fullName.trim()) {
       setErrorMessage('Full Name is required.');
       return;
@@ -101,6 +105,26 @@ export const RegisterPage: React.FC = () => {
       setErrorMessage('Please enter a valid 10-digit Indian mobile number.');
       return;
     }
+
+    // Academic Validation (ONLY TWO FIELDS: Degree and Course)
+    if (!formData.degree) {
+      setErrorMessage('Please select your Degree.');
+      return;
+    }
+    if (formData.degree === OTHER_OPTION && (!formData.otherDegree || !formData.otherDegree.trim())) {
+      setErrorMessage('Please specify your Degree name.');
+      return;
+    }
+    if (!formData.course) {
+      setErrorMessage('Please select your Course.');
+      return;
+    }
+    if (formData.course === OTHER_OPTION && (!formData.otherCourse || !formData.otherCourse.trim())) {
+      setErrorMessage('Please specify your Course / Specialization name.');
+      return;
+    }
+
+    // Professional Validation
     if (!formData.companyName.trim()) {
       setErrorMessage('Current Company / Organization is required.');
       return;
@@ -112,7 +136,23 @@ export const RegisterPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const result = await registrationService.register(formData);
+      // Send validated payload
+      const payload: RegisterPayload = {
+        ...formData,
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        mobile: formData.mobile.trim(),
+        currentCity: formData.currentCity?.trim() || undefined,
+        degree: formData.degree,
+        course: formData.course,
+        otherDegree: formData.degree === OTHER_OPTION ? formData.otherDegree?.trim() : undefined,
+        otherCourse: formData.course === OTHER_OPTION ? formData.otherCourse?.trim() : undefined,
+        branch: formData.course === OTHER_OPTION ? (formData.otherCourse?.trim() || formData.course) : formData.course,
+        companyName: formData.companyName.trim(),
+        designation: formData.designation.trim(),
+      };
+
+      const result = await registrationService.register(payload);
       navigate('/registration/success', { state: { registration: result } });
     } catch (err: any) {
       const errorText =
@@ -204,7 +244,7 @@ export const RegisterPage: React.FC = () => {
                     type="text"
                     name="fullName"
                     value={formData.fullName}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     required
                     placeholder="e.g. Rahul Sharma"
                     className="w-full pl-10 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] transition-colors"
@@ -223,7 +263,7 @@ export const RegisterPage: React.FC = () => {
                     inputMode="email"
                     name="email"
                     value={formData.email}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     required
                     placeholder="rahul.sharma@example.com"
                     className="w-full pl-10 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] transition-colors"
@@ -243,7 +283,7 @@ export const RegisterPage: React.FC = () => {
                     pattern="[0-9]*"
                     name="mobile"
                     value={formData.mobile}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     required
                     placeholder="9876543210"
                     className="w-full pl-10 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] font-mono transition-colors"
@@ -261,7 +301,7 @@ export const RegisterPage: React.FC = () => {
                     type="text"
                     name="currentCity"
                     value={formData.currentCity}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder="e.g. Jaipur, Bengaluru, Gurgaon"
                     className="w-full pl-10 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] transition-colors"
                   />
@@ -270,7 +310,7 @@ export const RegisterPage: React.FC = () => {
             </div>
           </div>
 
-          {/* SECTION 2: ACADEMIC INFORMATION */}
+          {/* SECTION 2: ACADEMIC INFORMATION (ONLY TWO FIELDS: Degree and Course) */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
               <span className="text-xs font-bold text-[#E31827] uppercase tracking-wider">
@@ -279,16 +319,17 @@ export const RegisterPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
+              {/* Graduation Year */}
+              <div className="sm:col-span-1">
                 <label className="block text-xs font-semibold text-[#172033] mb-1">
                   Graduation Year <span className="text-[#E31827]">*</span>
                 </label>
                 <select
                   name="graduationYear"
                   value={formData.graduationYear}
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
+                  className="w-full px-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
                 >
                   {years.map((y) => (
                     <option key={y} value={y}>
@@ -298,43 +339,80 @@ export const RegisterPage: React.FC = () => {
                 </select>
               </div>
 
+              {/* FIELD 1: DEGREE (Searchable & Mobile-friendly) */}
               <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-[#172033] mb-1">
-                  Course / Degree <span className="text-[#E31827]">*</span>
-                </label>
-                <select
-                  name="course"
-                  value={formData.course}
-                  onChange={handleChange}
+                <SearchableSelect
+                  id="degree-select"
+                  name="degree"
+                  label="Degree"
                   required
-                  className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
-                >
-                  {DEGREES.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
+                  value={formData.degree}
+                  options={JECRC_DEGREES}
+                  placeholder="Select Degree..."
+                  onChange={handleDegreeChange}
+                  helperText="Select your official graduated degree"
+                />
               </div>
 
+              {/* Conditional: Custom Degree Input if 'Other / Not Listed' is chosen */}
+              {formData.degree === OTHER_OPTION && (
+                <div className="sm:col-span-3 bg-red-50/50 p-3.5 rounded-xl border border-red-100 space-y-1">
+                  <label className="block text-xs font-semibold text-[#E31827]">
+                    Specify Degree Name <span className="text-[#E31827]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="otherDegree"
+                    value={formData.otherDegree || ''}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Enter your exact degree title (e.g. B.Voc, Diploma, Executive MBA)"
+                    className="w-full px-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] bg-white text-[#172033] outline-none"
+                  />
+                </div>
+              )}
+
+              {/* FIELD 2: COURSE (Dependent on Degree, Searchable & Mobile-friendly) */}
               <div className="sm:col-span-3">
-                <label className="block text-xs font-semibold text-[#172033] mb-1">
-                  Branch / Department <span className="text-[#E31827]">*</span>
-                </label>
-                <select
-                  name="branch"
-                  value={formData.branch}
-                  onChange={handleChange}
+                <SearchableSelect
+                  id="course-select"
+                  name="course"
+                  label="Course / Programme"
                   required
-                  className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
-                >
-                  {BRANCHES.map((b) => (
-                    <option key={b} value={b}>
-                      {b}
-                    </option>
-                  ))}
-                </select>
+                  disabled={!formData.degree}
+                  value={formData.course}
+                  options={availableCourses}
+                  placeholder={
+                    !formData.degree
+                      ? 'Select a Degree above first...'
+                      : 'Select Course / Specialization...'
+                  }
+                  onChange={handleCourseChange}
+                  helperText={
+                    !formData.degree
+                      ? 'Course options unlock after selecting a degree'
+                      : `Programmes available under ${formData.degree}`
+                  }
+                />
               </div>
+
+              {/* Conditional: Custom Course Input if 'Other / Not Listed' is chosen */}
+              {formData.course === OTHER_OPTION && (
+                <div className="sm:col-span-3 bg-red-50/50 p-3.5 rounded-xl border border-red-100 space-y-1">
+                  <label className="block text-xs font-semibold text-[#E31827]">
+                    Specify Course / Specialization Name <span className="text-[#E31827]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="otherCourse"
+                    value={formData.otherCourse || ''}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="Enter your course / branch specialization (e.g. Robotics, Marketing Analytics)"
+                    className="w-full px-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] bg-white text-[#172033] outline-none"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -357,7 +435,7 @@ export const RegisterPage: React.FC = () => {
                     type="text"
                     name="companyName"
                     value={formData.companyName}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     required
                     placeholder="e.g. Google, Infosys, Self-Employed"
                     className="w-full pl-10 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] transition-colors"
@@ -375,7 +453,7 @@ export const RegisterPage: React.FC = () => {
                     type="text"
                     name="designation"
                     value={formData.designation}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     required
                     placeholder="e.g. Senior Software Engineer"
                     className="w-full pl-10 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] transition-colors"

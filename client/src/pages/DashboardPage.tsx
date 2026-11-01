@@ -199,10 +199,10 @@ export const DashboardPage: React.FC = () => {
             </button>
 
             <Link
-              to="/admin/registrations?branch=Computer+Science+%26+Engineering"
+              to="/admin/registrations?degree=B.Tech"
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border bg-white border-[#E5E7EB] text-[#64748B] hover:bg-gray-50 text-xs font-medium shrink-0 min-h-[38px]"
             >
-              <span>CSE Cohort</span>
+              <span>B.Tech Cohort</span>
             </Link>
 
             <Link
@@ -329,7 +329,7 @@ export const DashboardPage: React.FC = () => {
 
                 <div className="text-xs text-[#64748B] space-y-0.5">
                   <p>
-                    <strong className="text-[#172033]">Class of {item.batch}</strong> • {item.branch}
+                    <strong className="text-[#172033]">Class of {item.batch}</strong> • {item.degree ? `${item.degree} • ${item.course}` : item.branch}
                   </p>
                   <p>
                     {item.company} {item.designation ? `(${item.designation})` : ''}
@@ -356,7 +356,7 @@ export const DashboardPage: React.FC = () => {
               <tr>
                 <th className="px-5 py-3">Alumnus Name & ID</th>
                 <th className="px-5 py-3">Batch</th>
-                <th className="px-5 py-3">Branch</th>
+                <th className="px-5 py-3">Degree & Course</th>
                 <th className="px-5 py-3">Company & Role</th>
                 <th className="px-5 py-3">Gate</th>
                 <th className="px-5 py-3">Verified By</th>
@@ -378,7 +378,9 @@ export const DashboardPage: React.FC = () => {
                       <div className="text-[10px] font-mono text-[#64748B]">{item.registrationId}</div>
                     </td>
                     <td className="px-5 py-3.5 font-mono text-gray-600">Class of {item.batch}</td>
-                    <td className="px-5 py-3.5 text-gray-600 truncate max-w-[140px]">{item.branch}</td>
+                    <td className="px-5 py-3.5 text-gray-600 truncate max-w-[160px]">
+                      {item.degree ? `${item.degree} • ${item.course}` : item.branch}
+                    </td>
                     <td className="px-5 py-3.5">
                       <div className="font-medium text-[#172033]">{item.company}</div>
                       <div className="text-[11px] text-[#64748B]">{item.designation}</div>

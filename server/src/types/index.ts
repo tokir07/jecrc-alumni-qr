@@ -21,7 +21,10 @@ export interface VerificationResponse {
     fullName: string;
     registrationId: string;
     graduationYear: number;
+    degree?: string;
     course?: string;
+    otherDegree?: string | null;
+    otherCourse?: string | null;
     branch: string;
     companyName: string;
     designation: string;

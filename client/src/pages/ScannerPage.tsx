@@ -323,9 +323,9 @@ export const ScannerPage: React.FC = () => {
                   <div className="flex items-center gap-2.5 p-3 rounded-xl bg-[#FAFAFB] border border-[#E5E7EB]">
                     <GraduationCap className="w-4 h-4 text-[#E31827] shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-[#64748B] text-[10px] uppercase font-bold">Batch & Branch</p>
+                      <p className="text-[#64748B] text-[10px] uppercase font-bold">Degree & Course</p>
                       <p className="font-bold text-[#172033] truncate">
-                        Class of {result.alumni?.graduationYear} • {result.alumni?.branch}
+                        {result.alumni?.degree ? `${result.alumni.degree} • ${result.alumni.course}` : result.alumni?.branch}
                       </p>
                     </div>
                   </div>
