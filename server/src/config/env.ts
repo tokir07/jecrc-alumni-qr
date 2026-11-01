@@ -13,13 +13,30 @@ const envSchema = z.object({
   ),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  DIRECT_URL: z.string().optional().transform((val) => val || process.env.DATABASE_URL || ''),
   CLIENT_URL: z.string().default('http://localhost:5173'),
   JWT_SECRET: z.string().min(16, 'JWT_SECRET must be at least 16 characters long'),
   SESSION_COOKIE_SECRET: z.string().default('jecrc-diwali-session-secret-2026'),
+  PUBLIC_APP_URL: z
+    .string()
+    .optional()
+    .transform(
+      (val) =>
+        val ||
+        process.env.APP_BASE_URL ||
+        process.env.CLIENT_URL ||
+        'http://localhost:5173'
+    ),
   APP_BASE_URL: z
     .string()
     .optional()
-    .transform((val) => val || process.env.CLIENT_URL || 'http://localhost:5173'),
+    .transform(
+      (val) =>
+        val ||
+        process.env.PUBLIC_APP_URL ||
+        process.env.CLIENT_URL ||
+        'http://localhost:5173'
+    ),
   INITIAL_ADMIN_USERNAME: z.string().default('admin'),
   INITIAL_ADMIN_PASSWORD: z.string().default('Admin@JECRC2026!'),
   INITIAL_VOLUNTEER_USERNAME: z.string().default('volunteer1'),

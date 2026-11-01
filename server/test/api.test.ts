@@ -95,7 +95,10 @@ async function runTestSuite() {
     console.log('[Phase A: Health Check]');
     const health = await request('GET', '/api/health');
     assert(health.status === 200, 'GET /api/health returns 200');
-    assert(health.data.status === 'HEALTHY', 'Health status is HEALTHY');
+    assert(
+      health.data.status === 'OK' || health.data.status === 'HEALTHY',
+      'Health status is OK / HEALTHY'
+    );
 
     // 2. Authentication Tests
     console.log('\n[Phase B: Authentication & Role-Based Access]');

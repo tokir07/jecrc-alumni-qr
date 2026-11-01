@@ -69,8 +69,9 @@ app.use(cookieParser(env.SESSION_COOKIE_SECRET));
 // Root-level health check for Render / monitoring services
 app.get('/health', (_req, res) => {
   res.status(200).json({
-    status: 'HEALTHY',
-    service: 'JECRC Alumni Diwali 2026 API',
+    status: 'OK',
+    healthy: true,
+    service: 'JECRC Alumni API',
     timestamp: new Date().toISOString(),
   });
 });
@@ -111,11 +112,11 @@ const isTestMode =
   process.argv.some((arg) => arg.toLowerCase().includes('test'));
 
 if (!isTestMode) {
-  const server = app.listen(env.PORT, () => {
+  const server = app.listen(env.PORT, '0.0.0.0', () => {
     console.log(`=======================================================`);
-    console.log(`✨ JECRC Alumni Diwali 2026 Server running on port ${env.PORT}`);
+    console.log(`✨ JECRC Alumni Diwali 2026 Server running on 0.0.0.0:${env.PORT}`);
     console.log(`📍 Environment: ${env.NODE_ENV}`);
-    console.log(`🔗 API Base URL: http://localhost:${env.PORT}/api`);
+    console.log(`🔗 API Base URL: http://0.0.0.0:${env.PORT}/api`);
     console.log(`💻 Client URL: ${env.CLIENT_URL}`);
     console.log(`=======================================================`);
   });

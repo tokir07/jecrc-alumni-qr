@@ -16,7 +16,7 @@ export interface QrOptions {
  */
 export function buildQrPayload(token: string): string {
   // Format: https://domain/checkin/verify?token=...
-  const baseUrl = env.APP_BASE_URL.replace(/\/+$/, '');
+  const baseUrl = (env.PUBLIC_APP_URL || env.APP_BASE_URL).replace(/\/+$/, '');
   return `${baseUrl}/checkin/verify?token=${token}`;
 }
 

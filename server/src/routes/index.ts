@@ -9,8 +9,9 @@ const router = Router();
 // Health check
 router.get('/health', (_req, res) => {
   res.status(200).json({
-    status: 'HEALTHY',
-    service: 'JECRC Alumni Diwali 2026 API',
+    status: 'OK',
+    healthy: true,
+    service: 'JECRC Alumni API',
     timestamp: new Date().toISOString(),
   });
 });

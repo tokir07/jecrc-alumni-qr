@@ -1,213 +1,193 @@
-# Deployment Guide: JECRC University Alumni Diwali 2026
+# JECRC University Alumni Diwali Get-Together 2026
+## Production Deployment Guide: Render & Neon PostgreSQL
 
-## QR-Based Registration & Entry Management System
-
-This guide provides end-to-end instructions for deploying the production application with the **Frontend on Vercel** and the **Backend & Database on Render**.
+This guide provides step-by-step instructions to deploy the complete **JECRC Alumni QR-Based Registration & Gate Entry System** using:
+1. **Frontend**: Render Static Site (React + Vite + Tailwind CSS) — *Free Tier*
+2. **Backend**: Render Web Service (Node.js + Express + Prisma) — *Always-on Starter Plan (~$7/mo)*
+3. **Database**: Neon Managed PostgreSQL — *Free Tier (1 GB storage)*
 
 ---
 
-## 🏛 Architecture Overview
+## 🏛 System Architecture & Topology
 
 ```
-                      ┌─────────────────────────────────────────┐
-                      │             User / Gate Browser         │
-                      └────────────────────┬────────────────────┘
-                                           │
-                        HTTPS / HTML5 Camera Scanner / UI
-                                           │
-                                           ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                          VERCEL (Frontend Host)                                 │
-│  • Domain: https://<your-project>.vercel.app                                    │
-│  • Stack: Vite + React 18 + TypeScript + Tailwind CSS                           │
-│  • Routing: SPA fallback rewrite via client/vercel.json                         │
-│  • Env: VITE_API_URL = https://<your-backend>.onrender.com/api                   │
-└────────────────────────────────────────┬────────────────────────────────────────┘
-                                         │
-                         REST API Requests (CORS & Bearer JWT)
-                                         │
-                                         ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                          RENDER (Backend Host)                                  │
-│  • Web Service: https://<your-backend>.onrender.com                             │
-│  • Stack: Node.js 18+ / 20+ + Express + TypeScript + Prisma ORM                 │
-│  • Health Check: /health                                                        │
-│  • Build: npm install && npm run build                                          │
-│  • Start: npx prisma db push && npx tsx prisma/seed.ts && node dist/app.js      │
-└────────────────────────────────────────┬────────────────────────────────────────┘
-                                         │
-                               SQL Wire Protocol
-                                         │
-                                         ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                      RENDER POSTGRESQL (Database Host)                          │
-│  • Managed PostgreSQL 15/16 Instance                                            │
-│  • Tables: Event, User, AlumniRegistration, CheckIn                             │
-└─────────────────────────────────────────────────────────────────────────────────┘
+                         ┌──────────────────────────────────────────────┐
+                         │      Alumni & Gate Volunteer Devices         │
+                         │    (Android, iPhone, Laptops, Tablets)       │
+                         └──────────────────────┬───────────────────────┘
+                                                │
+                                    HTTPS Traffic / Cameras
+                                                │
+                                                ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                     FRONTEND: Render Static Site (React + Vite)                          │
+│  • Public URL: https://jecrc-alumni-qr.onrender.com                                     │
+│  • Features: Public Registration Portal, QR Pass Generator, Gate Scanner, Admin Portal  │
+│  • SPA Routing Rewrite: /* -> /index.html                                               │
+│  • Environment Variable: VITE_API_URL=https://jecrc-alumni-api.onrender.com/api         │
+└───────────────────────────────────────────┬─────────────────────────────────────────────┘
+                                            │
+                          REST API (CORS + Authorization: Bearer JWT)
+                                            │
+                                            ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                     BACKEND: Render Web Service (Node.js + Express)                     │
+│  • API Base URL: https://jecrc-alumni-api.onrender.com                                  │
+│  • Host / Binding: 0.0.0.0:${PORT}                                                      │
+│  • Health Check: /health -> { "status": "OK", "service": "JECRC Alumni API" }           │
+│  • Build Command: npm install && npx prisma generate && npm run build                   │
+│  • Start Command: npx prisma migrate deploy && npx tsx prisma/seed.ts && node dist/app.js│
+└───────────────────────────────────────────┬─────────────────────────────────────────────┘
+                                            │
+                        Pooled SQL / Direct Compute Connections
+                                            │
+                                            ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                           DATABASE: Neon Managed PostgreSQL                             │
+│  • Engine: PostgreSQL 16 (Serverless)                                                   │
+│  • DATABASE_URL (Pooled): PgBouncer pooled connection (-pooler string)                  │
+│  • DIRECT_URL (Direct): Direct connection for migrations                                │
+│  • Tables: users, events, alumni_registrations, check_ins                               │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Part 1: Backend & Database Deployment on Render
+## Step 1: Set Up PostgreSQL on Neon
 
-### Step 1.1: Deploy PostgreSQL Database on Render
-
-1. Log in to your [Render Dashboard](https://dashboard.render.com/).
-2. Click **New +** → **PostgreSQL**.
-3. Fill in the database details:
-   - **Name**: `jecrc-diwali-db`
-   - **Database**: `jecrc_diwali`
-   - **User**: `jecrc_admin`
-   - **Region**: Choose the region closest to you (e.g., `Singapore` or `Frankfurt`).
-   - **Plan**: `Free` (or `Starter`).
-4. Click **Create Database**.
-5. Once created, copy the **Internal Database URL** (if deploying the backend on the same Render account) or **External Database URL**.
+1. Navigate to the [Neon Console](https://console.neon.tech/) and sign in.
+2. Click **Create Project**:
+   - **Project Name**: `jecrc-alumni`
+   - **Database Name**: `jecrc_alumni`
+   - **Region**: Choose the region closest to your target audience (e.g. `ap-southeast-1` Singapore or `eu-central-1` Frankfurt).
+   - **PostgreSQL Version**: `16` (Default)
+3. Under **Connection Details** on the project dashboard:
+   - Select **Pooled connection**: Copy the connection string. This is your `DATABASE_URL`.
+     *(Example: `postgresql://username:password@ep-sample-pooler.region.aws.neon.tech/jecrc_alumni?sslmode=require`)*
+   - Uncheck "Pooled connection" to view the **Direct connection**: Copy this string. This is your `DIRECT_URL`.
+     *(Example: `postgresql://username:password@ep-sample.region.aws.neon.tech/jecrc_alumni?sslmode=require`)*
 
 ---
 
-### Step 1.2: Deploy the Backend Web Service on Render
+## Step 2: Deploy the Backend on Render (Web Service)
 
-#### Option A: Quick Blueprint Deploy (`render.yaml`)
-A ready-to-use `render.yaml` blueprint is included in the root of this repository.
-1. In Render, click **Blueprints** → **New Blueprint Instance**.
-2. Connect your GitHub repository.
-3. Render will automatically configure the PostgreSQL database and Web Service based on `render.yaml`.
-
-#### Option B: Manual Web Service Setup
-1. In the Render Dashboard, click **New +** → **Web Service**.
-2. Connect your Git repository.
-3. Configure the following settings:
-   - **Name**: `jecrc-diwali-api`
-   - **Region**: Same region as your database.
+1. Open the [Render Dashboard](https://dashboard.render.com/).
+2. Click **New +** → **Web Service**.
+3. Connect your GitHub repository (`jecrc-alumni-qr` / your repo name).
+4. Configure the Web Service settings:
+   - **Name**: `jecrc-alumni-api`
+   - **Language**: `Node`
+   - **Branch**: `main`
    - **Root Directory**: `server`
-   - **Runtime**: `Node`
+   - **Build Command**:
+     ```bash
+     npm install && npx prisma generate && npm run build
+     ```
+   - **Start Command**:
+     ```bash
+     npx prisma migrate deploy && npx tsx prisma/seed.ts && node dist/app.js
+     ```
+   - **Instance Type**: **Starter** ($7/month paid plan)
+     > [!IMPORTANT]
+     > Use the paid **Starter** tier for the backend to prevent the instance from sleeping after 15 minutes of inactivity. This ensures zero latency during event gate check-in.
+   - **Health Check Path**: `/health`
+
+5. Under **Environment Variables**, add:
+
+| Key | Value / Source |
+|---|---|
+| `NODE_ENV` | `production` |
+| `DATABASE_URL` | *Your Neon pooled connection string* (with `-pooler`) |
+| `DIRECT_URL` | *Your Neon direct connection string* (without `-pooler`) |
+| `CLIENT_URL` | `https://jecrc-alumni-qr.onrender.com` *(adjust if your Static Site name differs)* |
+| `PUBLIC_APP_URL`| `https://jecrc-alumni-qr.onrender.com` *(base URL encoded into alumni QR passes)* |
+| `APP_BASE_URL` | `https://jecrc-alumni-qr.onrender.com` |
+| `JWT_SECRET` | *Click "Generate" or enter a 32+ character random string* |
+| `SESSION_COOKIE_SECRET` | *Click "Generate" or enter a 32+ character random string* |
+| `INITIAL_ADMIN_USERNAME` | `admin` |
+| `INITIAL_ADMIN_PASSWORD` | `Admin@JECRC2026!` *(Change to a strong password)* |
+| `INITIAL_VOLUNTEER_USERNAME`| `volunteer1` |
+| `INITIAL_VOLUNTEER_PASSWORD`| `Volunteer@JECRC2026!` *(Change to a strong password)* |
+
+6. Click **Create Web Service**.
+7. Once deployed, verify your backend health check by visiting:
+   `https://jecrc-alumni-api.onrender.com/health`
+   Expected response:
+   ```json
+   {
+     "status": "OK",
+     "healthy": true,
+     "service": "JECRC Alumni API",
+     "timestamp": "2026-11-01T..."
+   }
+   ```
+
+---
+
+## Step 3: Deploy the Frontend on Render (Static Site)
+
+1. In the [Render Dashboard](https://dashboard.render.com/), click **New +** → **Static Site**.
+2. Connect the same GitHub repository.
+3. Configure the Static Site settings:
+   - **Name**: `jecrc-alumni-qr`
+   - **Branch**: `main`
+   - **Root Directory**: `client`
    - **Build Command**:
      ```bash
      npm install && npm run build
      ```
-   - **Start Command**:
-     ```bash
-     npx prisma db push && npx tsx prisma/seed.ts && node dist/app.js
-     ```
-   - **Health Check Path**: `/health`
+   - **Publish Directory**: `dist`
+4. Add the Frontend **Environment Variable**:
 
-4. Add the **Environment Variables** in the Render settings:
+| Key | Value |
+|---|---|
+| `VITE_API_URL` | `https://jecrc-alumni-api.onrender.com/api` |
 
-| Variable Key | Description | Example / Recommended Value |
-|---|---|---|
-| `NODE_ENV` | Runtime environment | `production` |
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://jecrc_admin:PASSWORD@dpg-.../jecrc_diwali` |
-| `CLIENT_URL` | Your Vercel frontend URL | `https://your-frontend.vercel.app` |
-| `APP_BASE_URL` | Base URL encoded in QR codes | `https://your-frontend.vercel.app` |
-| `JWT_SECRET` | Secret key for JWT signing | `Generate a 32+ character random string` |
-| `SESSION_COOKIE_SECRET`| Cookie encryption secret | `Generate a 32+ character random string` |
-| `INITIAL_ADMIN_USERNAME` | Default admin username | `admin` |
-| `INITIAL_ADMIN_PASSWORD` | Default admin password | `Admin@JECRC2026!` |
-| `INITIAL_VOLUNTEER_USERNAME` | Default volunteer username | `volunteer1` |
-| `INITIAL_VOLUNTEER_PASSWORD` | Default volunteer password | `Volunteer@JECRC2026!` |
+5. Configure **React Router Fallback (Rewrite Rule)**:
+   In the Static Site settings, scroll to **Redirects / Rewrites** and click **Add Rule**:
+   - **Type**: `Rewrite`
+   - **Source**: `/*`
+   - **Destination**: `/index.html`
+   > [!NOTE]
+   > This rule ensures that direct page navigation and browser reloads on `/register`, `/admin/dashboard`, `/admin/scanner`, and `/registration/success` render the React SPA seamlessly without returning a 404 error.
 
-5. Click **Create Web Service**.
-6. Wait for the build and deployment to complete. Once deployed, note down your Render Web Service URL (e.g., `https://jecrc-diwali-api.onrender.com`).
+6. Click **Create Static Site**.
 
 ---
 
-## Part 2: Frontend Deployment on Vercel
+## Step 4: Synchronize & Final Verification
 
-### Step 2.1: Import Project into Vercel
-
-1. Log in to [Vercel](https://vercel.com/).
-2. Click **Add New...** → **Project**.
-3. Select your GitHub repository.
-
-### Step 2.2: Configure Project Settings
-
-In the **Configure Project** screen:
-
-1. **Framework Preset**: `Vite`
-2. **Root Directory**: Click *Edit* and select `client`.
-   *(Note: Both root directory configurations are supported thanks to `client/vercel.json` and root `vercel.json`)*
-3. **Build and Output Settings**:
-   - **Build Command**: `npm run build` (or `tsc -b && vite build`)
-   - **Output Directory**: `dist`
-   - **Install Command**: `npm install`
-
-4. **Environment Variables**:
-   Add the following environment variable:
-
-| Key | Value | Notes |
-|---|---|---|
-| `VITE_API_URL` | `https://jecrc-diwali-api.onrender.com/api` | Point to your Render backend URL + `/api` |
-
-5. Click **Deploy**.
+1. Once the frontend is live at `https://jecrc-alumni-qr.onrender.com`:
+   - If your assigned Render URL differs (e.g. `jecrc-alumni-qr-abc.onrender.com`), go back to your Backend Web Service settings on Render.
+   - Update `CLIENT_URL`, `PUBLIC_APP_URL`, and `APP_BASE_URL` to match your actual frontend URL.
+   - Click **Save Changes** (Render will redeploy the backend in ~30 seconds).
 
 ---
 
-### Step 2.3: Update Backend `CLIENT_URL` (if needed)
+## 🧪 Production Readiness & Verification Checklist
 
-Once Vercel assigns your production domain (e.g., `https://jecrc-alumni-diwali.vercel.app`):
-1. Go back to your Render Dashboard → `jecrc-diwali-api` → **Environment**.
-2. Update `CLIENT_URL` and `APP_BASE_URL` to match your Vercel URL:
-   ```env
-   CLIENT_URL=https://jecrc-alumni-diwali.vercel.app
-   APP_BASE_URL=https://jecrc-alumni-diwali.vercel.app
-   ```
-3. Save changes. Render will automatically redeploy the backend with the new allowed CORS origin.
-*(Note: The backend CORS configuration also automatically permits all `*.vercel.app` subdomains).*
+Complete this verification checklist before distributing the registration link to alumni:
 
----
-
-## Part 3: Verification & Smoke Testing Checklist
-
-### 1. Health Checks
-- [ ] Open `https://<your-backend>.onrender.com/health` in your browser. Verify you receive:
-  ```json
-  { "status": "HEALTHY", "service": "JECRC Alumni Diwali 2026 API" }
-  ```
-
-### 2. Frontend Connectivity
-- [ ] Open your Vercel app URL `https://<your-frontend>.vercel.app/register`.
-- [ ] Verify that university branding and alumni logos load cleanly.
-- [ ] Open Browser DevTools (F12) → Console to confirm no CORS or mixed-content errors.
-
-### 3. Public Alumni Registration
-- [ ] Submit a test registration form on `/register`.
-- [ ] Confirm you are redirected to `/registration/success`.
-- [ ] Verify that:
-  - Unique Registration ID is shown (e.g. `JECRC-DIWALI-2026-0001`).
-  - High-resolution QR code renders clearly.
-  - "Download QR Pass" button downloads a clean `.png`.
-  - "Print QR Pass" opens the browser print preview in official JECRC institutional layout.
-
-### 4. Admin Portal & Authentication
-- [ ] Navigate to `/admin/login`.
-- [ ] Log in with initial credentials:
-  - **Username**: `admin`
-  - **Password**: `Admin@JECRC2026!` (or your custom password set in Render env).
-- [ ] Verify Dashboard loads with 4 live metric cards and recent check-in table.
-
-### 5. Camera QR Scanner at Gate
-- [ ] Navigate to `/admin/scanner`.
-- [ ] Confirm the browser prompts for camera permission (HTTPS is enabled automatically by Vercel).
-- [ ] Test scanning a registered QR pass on a mobile device or screen:
-  - **Valid Pass**: Green card with audio chime and alumni entry confirmation.
-  - **Second Scan**: Amber duplicate entry warning banner ("Already Checked In").
-  - **Unregistered QR**: Red invalid badge.
-- [ ] Test the **Manual Check-In** fallback tab using the Registration ID.
-
-### 6. Export Alumni Database
-- [ ] Navigate to `/admin/registrations`.
-- [ ] Click **Export Data (CSV)**.
-- [ ] Verify the CSV downloads cleanly with complete alumni and check-in timestamp records.
+- [ ] **1. Public Registration Form**: Open `https://jecrc-alumni-qr.onrender.com/register` on a mobile device and desktop. Submit a test alumnus registration.
+- [ ] **2. Database Record in Neon**: Confirm the registration record appears in your Neon database under `alumni_registrations`.
+- [ ] **3. Unique Registration ID**: Verify the registration format matches `JECRC-DIWALI-2026-XXXX`.
+- [ ] **4. QR Code Generation**: Verify the generated QR code contains `https://jecrc-alumni-qr.onrender.com/checkin/verify?token=...` and no raw personal data.
+- [ ] **5. Download & Print Pass**: Test the "Download QR Pass" (.png) and "Print QR Pass" buttons.
+- [ ] **6. Admin Login**: Navigate to `/admin/login` and log in with your configured admin credentials.
+- [ ] **7. Volunteer Login**: Log in with volunteer credentials; confirm volunteers can access the scanner but cannot view sensitive exports or settings.
+- [ ] **8. Camera Scanner on Android**: Open `/admin/scanner` on Android Chrome over HTTPS, accept camera permissions, and scan the test pass.
+- [ ] **9. Camera Scanner on iPhone**: Open `/admin/scanner` on iOS Safari, accept camera permissions, and test scan.
+- [ ] **10. Successful Entry**: Verify green confirmation badge, audio chime, and check-in timestamp.
+- [ ] **11. Duplicate Scan Prevention**: Scan the same pass a second time. Verify the amber warning ("Already Checked In") and that no duplicate check-in is recorded.
+- [ ] **12. Invalid QR Handling**: Scan an unrelated QR code. Verify the red "Invalid QR" result.
+- [ ] **13. Dashboard Metrics**: Verify "Total Registered", "Total Checked-In", and "Pending Entries" cards update in real-time.
+- [ ] **14. CSV Export**: Download the alumni database from `/admin/registrations` and verify clean formatting.
 
 ---
 
-## 🔒 Security Best Practices for Event Day
+## ⚡ Event Day Gate Checklist
 
-1. **Change Default Admin Passwords**:
-   In the Admin portal or via environment variables, update the initial admin and volunteer passwords before event day.
-2. **Gate Volunteer Accounts**:
-   Create dedicated volunteer accounts with the `VOLUNTEER` role from the portal. Volunteers can only scan and verify entries; they cannot view private contact details, export data, or edit registrations.
-3. **Camera Permissions**:
-   Ensure gate check-in laptops, tablets, or smartphones run Chrome, Safari, or Edge over HTTPS so camera access is immediately granted without restrictions.
-4. **Render Free Tier Sleep Prevention**:
-   On the Render Free tier, web services spin down after 15 minutes of inactivity. For the evening of the event, consider upgrading the web service to the **Starter** tier ($7/month) to eliminate cold-start delays at the entry gates.
+1. **Gate Connectivity**: Ensure gate coordinators test entry points on both university Wi-Fi and mobile data (hotspot).
+2. **Device Preparation**: Keep at least two smartphones and one laptop per gate station.
+3. **Pre-Event Export**: Export a full CSV backup of all registrations 2 hours before gates open.
+4. **Post-Event Archival**: Do not immediately shut down the Render backend after the event. Export the final attendance records first to maintain a permanent official record for the JECRC Alumni Association.
