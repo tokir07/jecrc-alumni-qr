@@ -73,3 +73,23 @@
     max-width: 580px !important;
   }
 }
+
+/* Html5Qrcode video styling for mobile and desktop */
+#qr-reader {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+}
+#qr-reader video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 1rem !important;
+}
+#qr-reader img[alt="Info icon"] {
+  display: none !important;
+}
+#qr-shaded-region {
+  border-color: rgba(227, 24, 39, 0.5) !important;
+}
+

@@ -3,7 +3,6 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { scannerService } from '../services/scanner.service';
 import { VerificationResult } from '../types';
 import { soundFeedback } from '../utils/audio';
-import { JecrcCrest } from '../components/JecrcLogo';
 import {
   Camera,
   CameraOff,
@@ -19,55 +18,61 @@ import {
   GraduationCap,
   MapPin,
   Clock,
-  Sparkles,
-  RefreshCw,
+  FlipHorizontal,
+  Upload,
+  Zap,
+  ZapOff,
+  ShieldAlert,
 } from 'lucide-react';
 
 export const ScannerPage: React.FC = () => {
   const [cameras, setCameras] = useState<{ id: string; label: string }[]>([]);
-  const [selectedCameraId, setSelectedCameraId] = useState<string>('');
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  const [selectedCameraId, setSelectedCameraId] = useState<string>('environment');
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scannerLoading, setScannerLoading] = useState<boolean>(false);
+  const [fileScanning, setFileScanning] = useState<boolean>(false);
   const [verificationLoading, setVerificationLoading] = useState<boolean>(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [manualId, setManualId] = useState<string>('');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [gateName, setGateName] = useState<string>('Gate 01 (Main Gate)');
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [torchEnabled, setTorchEnabled] = useState<boolean>(false);
+  const [hasTorch, setHasTorch] = useState<boolean>(false);
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isProcessingRef = useRef<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load cameras on mount
+  // Check if browser context is secure for camera access
+  const isSecureContext =
+    typeof window !== 'undefined' &&
+    (window.isSecureContext ||
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1');
+
+  // Enumerate cameras once permission is available
   const enumerateCameras = useCallback(async () => {
     try {
-      const devices = await Html5Qrcode.getCameras();
-      if (devices && devices.length > 0) {
-        const formatted = devices.map((d, index) => ({
-          id: d.id,
-          label: d.label || `Camera ${index + 1}`,
-        }));
-        setCameras(formatted);
-
-        // Prefer rear/environment camera on phones
-        const backCam = formatted.find(
-          (c) =>
-            c.label.toLowerCase().includes('back') ||
-            c.label.toLowerCase().includes('rear') ||
-            c.label.toLowerCase().includes('environment')
-        );
-        setSelectedCameraId((prev) => prev || (backCam ? backCam.id : formatted[0].id));
+      if (Html5Qrcode && typeof Html5Qrcode.getCameras === 'function') {
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length > 0) {
+          const formatted = devices.map((d, index) => ({
+            id: d.id,
+            label: d.label || `Camera ${index + 1}`,
+          }));
+          setCameras(formatted);
+        }
       }
     } catch (err) {
-      console.warn('Camera enumeration info:', err);
+      console.warn('Camera enumeration note:', err);
     }
   }, []);
 
+  // Cleanup camera stream on unmount
   useEffect(() => {
-    enumerateCameras();
-
     return () => {
-      // Ensure camera hardware tracks are stopped on page leave
       if (scannerRef.current) {
         try {
           if (scannerRef.current.isScanning) {
@@ -84,7 +89,7 @@ export const ScannerPage: React.FC = () => {
         } catch {}
       }
     };
-  }, [enumerateCameras]);
+  }, []);
 
   const stopScanning = async () => {
     if (scannerRef.current) {
@@ -92,41 +97,64 @@ export const ScannerPage: React.FC = () => {
         if (scannerRef.current.isScanning) {
           await scannerRef.current.stop();
         }
-        setIsScanning(false);
       } catch (err) {
         console.warn('Error stopping scanner:', err);
-        setIsScanning(false);
       }
     }
+    setIsScanning(false);
+    setTorchEnabled(false);
+    setHasTorch(false);
   };
 
-  const startScanning = async (targetCamId?: string) => {
-    const camIdToUse = targetCamId || selectedCameraId;
+  const startScanning = async (overrideFacing?: 'environment' | 'user', overrideCamId?: string) => {
     setCameraError(null);
     setScannerLoading(true);
     setResult(null);
     isProcessingRef.current = false;
 
+    // 1. Guard check for Secure Context (required on phones for getUserMedia)
+    if (!isSecureContext && !navigator.mediaDevices?.getUserMedia) {
+      setCameraError(
+        'Mobile browsers require HTTPS to open live camera video stream. If testing over local Wi-Fi, either use HTTPS or use the "Snap Photo / Gallery" button below to scan directly!'
+      );
+      setScannerLoading(false);
+      return;
+    }
+
     try {
-      if (!scannerRef.current) {
+      // 2. Safely ensure clean instance
+      if (scannerRef.current) {
+        if (scannerRef.current.isScanning) {
+          try {
+            await scannerRef.current.stop();
+          } catch {}
+        }
+      } else {
         scannerRef.current = new Html5Qrcode('qr-reader');
       }
 
-      // Responsive qrbox configuration that perfectly scales from 320px phones to desktop
+      // 3. Responsive qrbox configuration
       const config = {
         fps: 15,
         qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-          const size = Math.max(180, Math.floor(minEdge * 0.72));
+          const minEdge = Math.min(viewfinderWidth, viewfinderHeight) || 280;
+          const size = Math.max(160, Math.floor(minEdge * 0.72));
           return { width: size, height: size };
         },
         aspectRatio: 1.0,
       };
 
-      // If a specific camera ID is known, use it; otherwise request the environment/back camera directly
-      const cameraConstraint = camIdToUse
-        ? camIdToUse
-        : { facingMode: 'environment' as const };
+      // 4. Resolve camera constraint for mobile
+      // On mobile devices, passing `{ facingMode: 'environment' }` works far better than arbitrary device IDs
+      const activeFacing = overrideFacing || facingMode;
+      const activeCamId = overrideCamId !== undefined ? overrideCamId : selectedCameraId;
+
+      let cameraConstraint: string | { facingMode: string };
+      if (activeCamId && activeCamId !== 'environment' && activeCamId !== 'user') {
+        cameraConstraint = activeCamId;
+      } else {
+        cameraConstraint = { facingMode: activeFacing };
+      }
 
       await scannerRef.current.start(
         cameraConstraint,
@@ -136,14 +164,37 @@ export const ScannerPage: React.FC = () => {
       );
 
       setIsScanning(true);
-      // Re-enumerate to get camera labels now that permission is granted
+
+      // Check torch capabilities
+      try {
+        const capabilities: any = scannerRef.current.getRunningTrackCapabilities();
+        if (capabilities && capabilities.torch) {
+          setHasTorch(true);
+        }
+      } catch {}
+
+      // Refresh camera labels now that permission has been granted
       enumerateCameras();
     } catch (err: any) {
       console.error('Failed to start scanner:', err);
-      setCameraError(
-        err.message ||
-          'Could not start camera. Please verify camera permissions in browser settings (ensure HTTPS).'
-      );
+      const errMsg = err?.message || String(err);
+
+      if (errMsg.includes('NotAllowedError') || errMsg.includes('Permission denied')) {
+        setCameraError(
+          'Camera access was denied. Please allow camera permissions in your mobile browser settings and try again.'
+        );
+      } else if (errMsg.includes('NotFoundError') || errMsg.includes('DevicesNotFoundError')) {
+        setCameraError('No camera device found on this device.');
+      } else if (errMsg.includes('NotReadableError') || errMsg.includes('TrackStartError')) {
+        setCameraError(
+          'Camera is currently in use by another app or browser tab. Please close other camera apps and retry.'
+        );
+      } else {
+        setCameraError(
+          errMsg ||
+            'Could not initialize mobile camera. Please verify camera permissions or use "Snap Photo" below.'
+        );
+      }
       setIsScanning(false);
     } finally {
       setScannerLoading(false);
@@ -155,16 +206,15 @@ export const ScannerPage: React.FC = () => {
       if (isProcessingRef.current) return;
       isProcessingRef.current = true;
 
-      // Stop camera stream cleanly before rendering the verified check-in card
+      // Stop camera stream cleanly before rendering verified card
       try {
         if (scannerRef.current && scannerRef.current.isScanning) {
           await scannerRef.current.stop();
-          setIsScanning(false);
         }
       } catch (e) {
         console.warn('Error stopping camera after scan:', e);
       }
-
+      setIsScanning(false);
       setVerificationLoading(true);
 
       try {
@@ -195,6 +245,65 @@ export const ScannerPage: React.FC = () => {
     },
     [gateName, soundEnabled]
   );
+
+  // Flip Camera (Rear <-> Front)
+  const handleFlipCamera = async () => {
+    const newFacing = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(newFacing);
+    setSelectedCameraId(newFacing);
+    if (isScanning) {
+      await stopScanning();
+      await startScanning(newFacing, newFacing);
+    }
+  };
+
+  // Toggle Torch/Flashlight
+  const handleToggleTorch = async () => {
+    if (!scannerRef.current || !hasTorch) return;
+    try {
+      const newTorchState = !torchEnabled;
+      await scannerRef.current.applyVideoConstraints({
+        // @ts-ignore
+        advanced: [{ torch: newTorchState }],
+      });
+      setTorchEnabled(newTorchState);
+    } catch (e) {
+      console.warn('Torch toggle not supported:', e);
+    }
+  };
+
+  // Native Mobile Photo / File Scan
+  const handleFileScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setFileScanning(true);
+    setCameraError(null);
+
+    try {
+      if (!scannerRef.current) {
+        scannerRef.current = new Html5Qrcode('qr-reader');
+      }
+
+      if (scannerRef.current.isScanning) {
+        await scannerRef.current.stop();
+        setIsScanning(false);
+      }
+
+      const decodedText = await scannerRef.current.scanFile(file, false);
+      await handleScanSuccess(decodedText);
+    } catch (err: any) {
+      console.warn('File scan failed:', err);
+      setCameraError(
+        'No QR code detected in the selected image. Please ensure the QR pass is clear and well-lit, or use live scanning.'
+      );
+    } finally {
+      setFileScanning(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
   const handleManualCheckIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -285,6 +394,20 @@ export const ScannerPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* INSECURE CONTEXT WARNING BANNER (Shows only on mobile over plain HTTP) */}
+      {!isSecureContext && (
+        <div className="p-3.5 sm:p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start gap-2.5">
+          <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-bold">Mobile Browser Security Notice</p>
+            <p className="leading-relaxed">
+              Mobile browsers require an HTTPS secure connection for live streaming. When running locally, tap{' '}
+              <strong>"Snap Photo / Gallery"</strong> below to open your phone's native camera and scan passes instantly!
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* SCAN RESULT SCREENS */}
       {result && (
@@ -477,49 +600,110 @@ export const ScannerPage: React.FC = () => {
         <div className="p-4 sm:p-5 bg-[#FAFAFB] border-b border-[#E5E7EB] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <label className="block text-[10px] sm:text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-1">
-              Select Camera Device
+              Camera Mode / Device
             </label>
             <select
               value={selectedCameraId}
               onChange={(e) => {
-                const newId = e.target.value;
-                setSelectedCameraId(newId);
-                if (isScanning) {
-                  stopScanning().then(() => startScanning(newId));
+                const val = e.target.value;
+                setSelectedCameraId(val);
+                if (val === 'environment' || val === 'user') {
+                  setFacingMode(val);
+                  if (isScanning) {
+                    stopScanning().then(() => startScanning(val, val));
+                  }
+                } else {
+                  if (isScanning) {
+                    stopScanning().then(() => startScanning(undefined, val));
+                  }
                 }
               }}
               className="w-full sm:w-auto min-w-[240px] px-3 py-2.5 sm:py-2 rounded-xl border border-[#E5E7EB] text-xs font-semibold bg-white text-[#172033] focus:border-[#E31827] outline-none min-h-[44px]"
             >
-              {cameras.length > 0 ? (
-                cameras.map((cam) => (
-                  <option key={cam.id} value={cam.id}>
-                    {cam.label}
-                  </option>
-                ))
-              ) : (
-                <option value="">Rear Camera (Default)</option>
-              )}
+              <option value="environment">Rear Camera (Recommended for Phones)</option>
+              <option value="user">Front Camera (Selfie)</option>
+              {cameras.length > 0 &&
+                cameras
+                  .filter((c) => c.label)
+                  .map((cam) => (
+                    <option key={cam.id} value={cam.id}>
+                      {cam.label}
+                    </option>
+                  ))}
             </select>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {/* Quick Flip Camera Button */}
+            <button
+              onClick={handleFlipCamera}
+              type="button"
+              title="Flip between Rear and Front camera"
+              className="px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-white hover:bg-gray-50 text-[#172033] font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
+            >
+              <FlipHorizontal className="w-4 h-4 text-[#E31827]" />
+              <span className="hidden sm:inline">Flip</span>
+            </button>
+
+            {/* Torch Button if supported */}
+            {hasTorch && isScanning && (
+              <button
+                onClick={handleToggleTorch}
+                type="button"
+                title={torchEnabled ? 'Turn Off Flashlight' : 'Turn On Flashlight'}
+                className={`px-3.5 py-2.5 rounded-xl border text-xs font-bold shadow-xs transition-colors flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer ${
+                  torchEnabled
+                    ? 'bg-yellow-400 text-yellow-950 border-yellow-500'
+                    : 'bg-white text-gray-700 border-[#E5E7EB] hover:bg-gray-50'
+                }`}
+              >
+                {torchEnabled ? <Zap className="w-4 h-4 fill-current" /> : <ZapOff className="w-4 h-4" />}
+                <span className="hidden sm:inline">Flash</span>
+              </button>
+            )}
+
+            {/* Native Mobile Camera Snap / Gallery Fallback */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={fileScanning}
+              type="button"
+              title="Open phone camera directly or choose image"
+              className="px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-white hover:bg-gray-50 text-[#172033] font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5 min-h-[44px] touch-manipulation cursor-pointer"
+            >
+              {fileScanning ? (
+                <Loader2 className="w-4 h-4 animate-spin text-[#E31827]" />
+              ) : (
+                <Upload className="w-4 h-4 text-[#16845B]" />
+              )}
+              <span>Snap / Image</span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleFileScan}
+            />
+
+            {/* Live Camera Scanner Toggle */}
             {!isScanning ? (
               <button
                 onClick={() => startScanning()}
                 disabled={scannerLoading}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px] touch-manipulation"
+                className="px-5 py-2.5 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 min-h-[44px] touch-manipulation"
               >
                 {scannerLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin text-white" />
                 ) : (
                   <Camera className="w-4 h-4 text-white" />
                 )}
-                <span>Start Camera Scanner</span>
+                <span>Start Camera</span>
               </button>
             ) : (
               <button
                 onClick={stopScanning}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gray-700 hover:bg-gray-800 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer min-h-[44px] touch-manipulation"
+                className="px-5 py-2.5 rounded-xl bg-gray-700 hover:bg-gray-800 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer min-h-[44px] touch-manipulation"
               >
                 <CameraOff className="w-4 h-4 text-white" />
                 <span>Stop Camera</span>
@@ -528,36 +712,55 @@ export const ScannerPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Central Camera Viewport */}
-        <div className="p-4 sm:p-6 flex flex-col items-center justify-center relative min-h-[300px] sm:min-h-[340px] bg-gray-900/95">
+        {/* Central Camera Viewport (Always kept in layout with non-zero dimensions) */}
+        <div className="p-4 sm:p-6 flex flex-col items-center justify-center relative min-h-[300px] sm:min-h-[360px] bg-gray-900/95">
           {cameraError && (
-            <div className="mb-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs text-center max-w-md w-full">
-              {cameraError}
+            <div className="mb-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs text-center max-w-md w-full shadow-xs">
+              <p className="font-bold mb-0.5">Camera Notice</p>
+              <p>{cameraError}</p>
             </div>
           )}
 
-          {/* Html5Qrcode video mount container */}
-          <div
-            id="qr-reader"
-            className={`w-full max-w-[320px] sm:max-w-[360px] aspect-square rounded-2xl overflow-hidden shadow-lg bg-black relative ${
-              isScanning ? 'block border-2 border-[#E31827]' : 'hidden'
-            }`}
-          ></div>
+          {/* Viewport Box (Always rendered so html5-qrcode always sees non-zero dimensions) */}
+          <div className="relative w-full max-w-[320px] sm:max-w-[360px] aspect-square rounded-2xl overflow-hidden shadow-xl bg-black border-2 border-gray-800">
+            {/* The html5-qrcode mount point */}
+            <div id="qr-reader" className="w-full h-full"></div>
 
-          {!isScanning && (
-            <div className="py-10 text-center text-gray-300 space-y-3 px-4">
-              <div className="w-14 h-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mx-auto text-[#E31827]">
-                <Camera className="w-7 h-7" />
+            {/* Inactive Overlay (Displayed when not scanning, without hiding the qr-reader div) */}
+            {!isScanning && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/95 text-center p-6 space-y-3 z-10">
+                <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-[#E31827]">
+                  <Camera className="w-7 h-7" />
+                </div>
+                <div>
+                  <p className="text-sm sm:text-base font-bold text-white">Scanner Inactive</p>
+                  <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto leading-relaxed">
+                    Tap <strong>"Start Camera"</strong> for live video or <strong>"Snap / Image"</strong> to capture with your mobile camera.
+                  </p>
+                </div>
+                <div className="pt-2 flex flex-col sm:flex-row gap-2 w-full max-w-xs">
+                  <button
+                    onClick={() => startScanning()}
+                    disabled={scannerLoading}
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 cursor-pointer touch-manipulation min-h-[44px]"
+                  >
+                    {scannerLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                    <span>Start Camera</span>
+                  </button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={fileScanning}
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs border border-white/20 flex items-center justify-center gap-1.5 cursor-pointer touch-manipulation min-h-[44px]"
+                  >
+                    <Upload className="w-4 h-4 text-[#16845B]" />
+                    <span>Snap Photo</span>
+                  </button>
+                </div>
               </div>
-              <div>
-                <p className="text-sm sm:text-base font-bold text-white">Scanner Ready</p>
-                <p className="text-xs text-gray-300 mt-1 max-w-xs mx-auto leading-relaxed">
-                  Tap <strong>"Start Camera Scanner"</strong> above to begin verifying alumni gate entry passes.
-                </p>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
 
+          {/* Verification in Progress Overlay */}
           {verificationLoading && (
             <div className="absolute inset-0 bg-white/95 backdrop-blur-xs flex flex-col items-center justify-center z-20">
               <Loader2 className="w-8 h-8 animate-spin text-[#E31827]" />
@@ -581,14 +784,14 @@ export const ScannerPage: React.FC = () => {
                 value={manualId}
                 onChange={(e) => setManualId(e.target.value)}
                 placeholder="e.g. JECRC-DIWALI-2026-0001"
-                className="flex-1 px-3.5 py-2.5 sm:py-2 rounded-xl border border-[#E5E7EB] text-sm sm:text-xs font-mono focus:border-[#E31827] outline-none bg-[#FAFAFB] text-[#172033] min-h-[44px]"
+                className="flex-1 px-3.5 py-2.5 sm:py-2 rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-xs text-[#172033] font-mono uppercase bg-[#FAFAFB] min-h-[44px]"
               />
               <button
                 type="submit"
                 disabled={verificationLoading || !manualId.trim()}
-                className="px-5 py-2.5 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-semibold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 min-h-[44px] touch-manipulation shrink-0"
+                className="px-5 py-2.5 rounded-xl bg-[#172033] hover:bg-black text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40 min-h-[44px] touch-manipulation"
               >
-                <Search className="w-4 h-4 text-white" />
+                <Search className="w-3.5 h-3.5" />
                 <span>Verify ID</span>
               </button>
             </form>
