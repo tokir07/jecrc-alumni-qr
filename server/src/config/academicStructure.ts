@@ -245,3 +245,4 @@ export const isValidDegreeCoursePair = (degree: string, course: string): boolean
   if (!courses) return false;
   return courses.includes(course);
 };
+
