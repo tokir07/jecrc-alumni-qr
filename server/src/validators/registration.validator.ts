@@ -3,12 +3,16 @@ import { z } from 'zod';
 // Indian mobile number regex: matches with or without +91, 91, or leading 0, followed by 10 digits starting with 6-9
 const indianMobileRegex = /^(?:\+91|91|0)?[6-9]\d{9}$/;
 
+// XSS Sanitizer: strips HTML tag characters
+const sanitizeHtml = (val: string): string => val.replace(/[<>]/g, '').trim();
+
 export const alumniRegistrationSchema = z.object({
   fullName: z
     .string()
     .trim()
     .min(2, 'Full Name must be at least 2 characters long')
-    .max(100, 'Full Name cannot exceed 100 characters'),
+    .max(100, 'Full Name cannot exceed 100 characters')
+    .transform(sanitizeHtml),
   email: z
     .string()
     .trim()
@@ -22,6 +26,7 @@ export const alumniRegistrationSchema = z.object({
     .string()
     .trim()
     .max(100, 'City name is too long')
+    .transform(sanitizeHtml)
     .optional()
     .or(z.literal('')),
   graduationYear: z.preprocess(
@@ -36,22 +41,26 @@ export const alumniRegistrationSchema = z.object({
     .string()
     .trim()
     .min(1, 'Course / Degree is required')
-    .max(100, 'Course name is too long'),
+    .max(100, 'Course name is too long')
+    .transform(sanitizeHtml),
   branch: z
     .string()
     .trim()
     .min(1, 'Branch / Department is required')
-    .max(100, 'Branch name is too long'),
+    .max(100, 'Branch name is too long')
+    .transform(sanitizeHtml),
   companyName: z
     .string()
     .trim()
     .min(1, 'Current Company / Organization is required')
-    .max(150, 'Company name is too long'),
+    .max(150, 'Company name is too long')
+    .transform(sanitizeHtml),
   designation: z
     .string()
     .trim()
     .min(1, 'Current Designation / Job Role is required')
-    .max(150, 'Designation is too long'),
+    .max(150, 'Designation is too long')
+    .transform(sanitizeHtml),
 });
 
 export const updateAlumniSchema = alumniRegistrationSchema.partial();

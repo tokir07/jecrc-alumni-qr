@@ -290,8 +290,12 @@ export class AdminService {
 
     const escapeCsv = (str: string | number | null | undefined): string => {
       if (str === null || str === undefined) return '""';
-      const val = String(str).replace(/"/g, '""');
-      return `"${val}"`;
+      let val = String(str);
+      // Guard against CSV / Spreadsheet formula injection (OWASP CSV Injection)
+      if (/^[=\+\-@\t\r]/.test(val)) {
+        val = `'${val}`;
+      }
+      return `"${val.replace(/"/g, '""')}"`;
     };
 
     const rows = registrations.map((r) => [

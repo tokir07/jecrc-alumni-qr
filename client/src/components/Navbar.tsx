@@ -87,15 +87,7 @@ export const Navbar: React.FC = () => {
                   </button>
                 </div>
               </>
-            ) : (
-              <Link
-                to="/admin/login"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#E5E7EB] text-[#172033] hover:border-gray-300 hover:bg-gray-50 text-xs font-semibold shadow-xs transition-colors"
-              >
-                <LogIn className="w-3.5 h-3.5 text-[#E31827]" />
-                <span>Staff Portal</span>
-              </Link>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

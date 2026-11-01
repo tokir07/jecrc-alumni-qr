@@ -1,5 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { JecrcLogo } from './JecrcLogo';
+import { ShieldCheck } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
@@ -10,8 +12,16 @@ export const Footer: React.FC = () => {
             <JecrcLogo size={28} />
           </div>
 
-          <div className="text-[#64748B]">
-            © 2026 JECRC University Alumni Association • Ramchandrapura, Sitapura, Jaipur • alumni@jecrcu.edu.in
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-[#64748B]">
+            <span>© 2026 JECRC University Alumni Association • Ramchandrapura, Sitapura, Jaipur • alumni@jecrcu.edu.in</span>
+            <Link
+              to="/admin/login"
+              className="text-[11px] text-[#94A3B8] hover:text-[#E31827] transition-colors inline-flex items-center gap-1"
+              title="Restricted Staff & Gate Entry"
+            >
+              <ShieldCheck className="w-3 h-3" />
+              <span>Staff Access</span>
+            </Link>
           </div>
         </div>
       </div>

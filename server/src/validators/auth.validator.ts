@@ -1,8 +1,15 @@
 import { z } from 'zod';
 
 export const loginSchema = z.object({
-  username: z.string().trim().min(3, 'Username must be at least 3 characters long'),
-  password: z.string().min(6, 'Password must be at least 6 characters long'),
+  username: z
+    .string()
+    .trim()
+    .min(3, 'Username must be at least 3 characters long')
+    .max(50, 'Username too long'),
+  password: z
+    .string()
+    .min(6, 'Password must be at least 6 characters long')
+    .max(100, 'Password too long'),
 });
 
 export const createVolunteerSchema = z.object({

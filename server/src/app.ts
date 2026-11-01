@@ -7,8 +7,12 @@ import fs from 'fs';
 import { env } from './config/env.js';
 import apiRoutes from './routes/index.js';
 import { errorHandler } from './middleware/error.middleware.js';
+import { apiGlobalLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
+
+// Security: Disable X-Powered-By header to prevent server fingerprinting
+app.disable('x-powered-by');
 
 // Enable 'trust proxy' for reverse proxy environments like Render / Heroku
 app.set('trust proxy', 1);
@@ -16,8 +20,16 @@ app.set('trust proxy', 1);
 // Security HTTP headers
 app.use(
   helmet({
-    contentSecurityPolicy: false, // Allows flexible local and development usage
+    contentSecurityPolicy: false, // Allows flexible cross-origin asset loading
     crossOriginEmbedderPolicy: false,
+    frameguard: { action: 'deny' }, // Prevent clickjacking
+    xContentTypeOptions: true, // Prevent MIME sniffing
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
   })
 );
 
@@ -76,8 +88,8 @@ app.get('/health', (_req: express.Request, res: express.Response) => {
   });
 });
 
-// API router mount
-app.use('/api', apiRoutes);
+// API router mount with DDoS & abuse rate protection
+app.use('/api', apiGlobalLimiter, apiRoutes);
 
 // Static client hosting (if built)
 const clientDistPath = fs.existsSync(path.resolve(process.cwd(), 'client/dist'))
