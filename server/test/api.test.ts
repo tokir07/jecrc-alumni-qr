@@ -30,7 +30,7 @@ function request(
 
     const req = http.request(
       {
-        hostname: 'localhost',
+        hostname: '127.0.0.1',
         port: TEST_PORT,
         path,
         method,
@@ -72,7 +72,7 @@ async function runTestSuite() {
 
   let serverInstance: http.Server;
   await new Promise<void>((resolve) => {
-    serverInstance = app.listen(TEST_PORT, () => {
+    serverInstance = app.listen(TEST_PORT, '127.0.0.1', () => {
       resolve();
     });
   });

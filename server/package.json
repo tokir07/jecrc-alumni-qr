@@ -6,12 +6,15 @@
   "main": "dist/app.js",
   "scripts": {
     "dev": "tsx watch src/app.ts",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "start": "node dist/app.js",
+    "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
     "prisma:push": "prisma db push",
     "prisma:seed": "tsx prisma/seed.ts",
+    "render-build": "npm install && npm run build",
+    "render-start": "prisma db push && tsx prisma/seed.ts && node dist/app.js",
     "test": "tsx test/api.test.ts"
   },
   "dependencies": {
@@ -24,7 +27,9 @@
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
+    "prisma": "^5.22.0",
     "qrcode": "^1.5.4",
+    "tsx": "^4.19.3",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -35,8 +40,6 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.13.1",
     "@types/qrcode": "^1.5.5",
-    "prisma": "^5.22.0",
-    "tsx": "^4.19.3",
     "typescript": "^5.7.3"
   }
 }

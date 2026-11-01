@@ -1,0 +1,38 @@
+databases:
+  - name: jecrc-diwali-db
+    databaseName: jecrc_diwali
+    user: jecrc_admin
+    plan: free
+
+services:
+  - type: web
+    name: jecrc-diwali-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npx prisma db push && npx tsx prisma/seed.ts && node dist/app.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: jecrc-diwali-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_COOKIE_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        value: https://your-vercel-app.vercel.app
+      - key: APP_BASE_URL
+        value: https://your-vercel-app.vercel.app
+      - key: INITIAL_ADMIN_USERNAME
+        value: admin
+      - key: INITIAL_ADMIN_PASSWORD
+        value: Admin@JECRC2026!
+      - key: INITIAL_VOLUNTEER_USERNAME
+        value: volunteer1
+      - key: INITIAL_VOLUNTEER_PASSWORD
+        value: Volunteer@JECRC2026!

@@ -10,6 +10,9 @@ import { errorHandler } from './middleware/error.middleware.js';
 
 const app = express();
 
+// Enable 'trust proxy' for reverse proxy environments like Render / Heroku
+app.set('trust proxy', 1);
+
 // Security HTTP headers
 app.use(
   helmet({
@@ -18,10 +21,40 @@ app.use(
   })
 );
 
-// CORS configuration for client origin and credentials
+// Allowed origins for CORS
+const allowedOrigins = [
+  env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
+
+// CORS configuration supporting Vercel and Render deployments
 app.use(
   cors({
-    origin: [env.CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      // Explicitly allowed origins
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // Allow any Vercel deployment preview or production domain (*.vercel.app)
+      if (origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
+        return callback(null, true);
+      }
+
+      // In development or test, allow all
+      if (env.NODE_ENV !== 'production') {
+        return callback(null, true);
+      }
+
+      // Disallow unknown production origin
+      callback(null, false);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -32,6 +65,15 @@ app.use(
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser(env.SESSION_COOKIE_SECRET));
+
+// Root-level health check for Render / monitoring services
+app.get('/health', (_req, res) => {
+  res.status(200).json({
+    status: 'HEALTHY',
+    service: 'JECRC Alumni Diwali 2026 API',
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // API router mount
 app.use('/api', apiRoutes);

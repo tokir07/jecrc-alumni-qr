@@ -13,11 +13,11 @@ export async function login(
     const { username, password } = loginSchema.parse(req.body);
     const { token, user } = await authService.login(username, password);
 
-    // Set secure HttpOnly cookie
+    // Set secure HttpOnly cookie (cross-site None for Vercel <-> Render HTTPS production)
     res.cookie('token', token, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
@@ -36,7 +36,11 @@ export async function login(
 }
 
 export function logout(req: AuthenticatedRequest, res: Response): void {
-  res.clearCookie('token');
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: env.NODE_ENV === 'production',
+    sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
+  });
   res.status(200).json({
     success: true,
     message: 'Logged out successfully',
