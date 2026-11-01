@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import registrationRoutes from './registration.routes.js';
 import checkinRoutes from './checkin.routes.js';
 import authRoutes from './auth.routes.js';
@@ -7,7 +7,7 @@ import adminRoutes from './admin.routes.js';
 const router = Router();
 
 // Health check
-router.get('/health', (_req, res) => {
+router.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'OK',
     healthy: true,

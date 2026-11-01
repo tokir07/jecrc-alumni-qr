@@ -19,24 +19,10 @@ const envSchema = z.object({
   SESSION_COOKIE_SECRET: z.string().default('jecrc-diwali-session-secret-2026'),
   PUBLIC_APP_URL: z
     .string()
-    .optional()
-    .transform(
-      (val) =>
-        val ||
-        process.env.APP_BASE_URL ||
-        process.env.CLIENT_URL ||
-        'http://localhost:5173'
-    ),
+    .default(process.env.APP_BASE_URL || process.env.CLIENT_URL || 'http://localhost:5173'),
   APP_BASE_URL: z
     .string()
-    .optional()
-    .transform(
-      (val) =>
-        val ||
-        process.env.PUBLIC_APP_URL ||
-        process.env.CLIENT_URL ||
-        'http://localhost:5173'
-    ),
+    .default(process.env.PUBLIC_APP_URL || process.env.CLIENT_URL || 'http://localhost:5173'),
   INITIAL_ADMIN_USERNAME: z.string().default('admin'),
   INITIAL_ADMIN_PASSWORD: z.string().default('Admin@JECRC2026!'),
   INITIAL_VOLUNTEER_USERNAME: z.string().default('volunteer1'),

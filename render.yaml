@@ -23,7 +23,7 @@ services:
     name: jecrc-alumni-api
     runtime: node
     rootDir: server
-    buildCommand: npm install && npx prisma generate && npm run build
+    buildCommand: npm install --include=dev && npx prisma generate && npm run build
     startCommand: npx prisma migrate deploy && npx tsx prisma/seed.ts && node dist/app.js
     healthCheckPath: /health
     autoDeploy: true

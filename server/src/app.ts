@@ -33,7 +33,7 @@ const allowedOrigins = [
 // CORS configuration supporting Vercel and Render deployments
 app.use(
   cors({
-    origin: (origin, callback) => {
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true);
 
@@ -67,7 +67,7 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser(env.SESSION_COOKIE_SECRET));
 
 // Root-level health check for Render / monitoring services
-app.get('/health', (_req, res) => {
+app.get('/health', (_req: express.Request, res: express.Response) => {
   res.status(200).json({
     status: 'OK',
     healthy: true,
@@ -86,7 +86,7 @@ const clientDistPath = fs.existsSync(path.resolve(process.cwd(), 'client/dist'))
 
 if (fs.existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));
-  app.get('*', (req, res, next) => {
+  app.get('*', (req: express.Request, res: express.Response, next: express.NextFunction) => {
     // Only serve index.html for non-api requests
     if (req.path.startsWith('/api')) {
       return next();
@@ -96,7 +96,7 @@ if (fs.existsSync(clientDistPath)) {
 }
 
 // Fallback 404 handler for undefined API routes
-app.use((_req, res) => {
+app.use((_req: express.Request, res: express.Response) => {
   res.status(404).json({
     success: false,
     error: 'API endpoint not found',
