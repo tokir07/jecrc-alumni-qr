@@ -44,19 +44,19 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6 bg-white p-8 sm:p-9 rounded-2xl border border-[#E5E7EB] shadow-xs">
+    <div className="min-h-[75vh] flex items-center justify-center py-6 sm:py-12 px-3 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-5 sm:space-y-6 bg-white p-5 sm:p-8 rounded-2xl border border-[#E5E7EB] shadow-xs">
         {/* Brand Header */}
         <div className="text-center">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <JecrcUniversityLogo height={36} />
+          <div className="flex items-center justify-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
+            <JecrcUniversityLogo height={30} className="sm:h-[36px]" />
             <div className="h-6 w-[1px] bg-gray-200" />
-            <JecrcAlumniLogo size={38} />
+            <JecrcAlumniLogo size={32} className="sm:w-[38px] sm:h-[38px]" />
           </div>
-          <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+          <p className="text-[10px] sm:text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
             JECRC UNIVERSITY • STAFF PORTAL
           </p>
-          <h2 className="text-xl sm:text-2xl font-bold text-[#172033] tracking-tight mt-1">
+          <h2 className="text-lg sm:text-2xl font-bold text-[#172033] tracking-tight mt-1">
             Authorized <span className="text-[#E31827]">Sign In</span>
           </h2>
           <p className="mt-1 text-xs text-[#64748B]">
@@ -66,7 +66,7 @@ export const LoginPage: React.FC = () => {
 
         {/* Error Alert */}
         {error && (
-          <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-start gap-2.5 text-xs">
+          <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-start gap-2.5 text-xs animate-fadeIn">
             <AlertCircle className="w-4 h-4 text-[#DC2626] mt-0.5 shrink-0" />
             <span>{error}</span>
           </div>
@@ -79,7 +79,7 @@ export const LoginPage: React.FC = () => {
               Username
             </label>
             <div className="relative">
-              <User className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+              <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 sm:top-2.5" />
               <input
                 type="text"
                 value={username}
@@ -87,7 +87,7 @@ export const LoginPage: React.FC = () => {
                 required
                 autoComplete="username"
                 placeholder="Enter staff username"
-                className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033]"
+                className="w-full pl-10 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] transition-colors"
               />
             </div>
           </div>
@@ -97,7 +97,7 @@ export const LoginPage: React.FC = () => {
               Password
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+              <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 sm:top-2.5" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
@@ -105,13 +105,14 @@ export const LoginPage: React.FC = () => {
                 required
                 autoComplete="current-password"
                 placeholder="Enter password"
-                className="w-full pl-9 pr-10 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033]"
+                className="w-full pl-10 pr-11 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] transition-colors"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 tabIndex={-1}
-                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 cursor-pointer"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute right-1 top-0.5 w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 cursor-pointer min-h-[40px] min-w-[40px]"
               >
                 {showPassword ? (
                   <EyeOff className="w-4 h-4" />
@@ -125,7 +126,7 @@ export const LoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+            className="w-full py-3 min-h-[48px] rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-bold text-xs uppercase tracking-wider shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2 touch-manipulation"
           >
             {loading ? (
               <>
@@ -145,14 +146,14 @@ export const LoginPage: React.FC = () => {
         <div className="pt-4 border-t border-gray-100 flex items-start gap-2.5 text-[#64748B] text-[11px] leading-relaxed">
           <ShieldCheck className="w-4 h-4 text-[#16845B] shrink-0 mt-0.5" />
           <span>
-            <strong>Restricted Access:</strong> This portal is intended exclusively for authorized JECRC University faculty, alumni coordinators, and gate volunteers. All login events and gate verification actions are cryptographically signed and logged.
+            <strong>Restricted Access:</strong> For authorized JECRC faculty, alumni coordinators, and gate volunteers. All gate verification actions are logged.
           </span>
         </div>
 
         <div className="text-center pt-1">
           <Link
             to="/register"
-            className="text-xs text-[#64748B] hover:text-[#E31827] transition-colors"
+            className="text-xs text-[#64748B] hover:text-[#E31827] transition-colors inline-block py-1.5"
           >
             ← Back to Alumni Registration Portal
           </Link>

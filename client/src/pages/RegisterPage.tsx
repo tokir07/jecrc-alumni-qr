@@ -127,20 +127,20 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="py-10 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
+    <div className="py-6 sm:py-10 px-3 sm:px-6 lg:px-8 max-w-3xl mx-auto space-y-6">
       {/* Institutional Top Banner */}
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 sm:p-8 shadow-xs mb-8 text-center">
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <JecrcUniversityLogo height={42} />
-          <div className="h-8 w-[1px] bg-gray-200" />
-          <JecrcAlumniLogo size={46} />
+      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 sm:p-8 shadow-xs text-center">
+        <div className="flex items-center justify-center gap-2.5 sm:gap-4 mb-3 sm:mb-4">
+          <JecrcUniversityLogo height={32} className="sm:h-[42px]" />
+          <div className="h-6 sm:h-8 w-[1px] bg-gray-200" />
+          <JecrcAlumniLogo size={34} className="sm:w-[44px] sm:h-[44px]" />
         </div>
 
-        <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
+        <p className="text-[10px] sm:text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
           JECRC UNIVERSITY • ALUMNI ASSOCIATION
         </p>
 
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#172033] tracking-tight mt-1">
+        <h1 className="text-xl sm:text-3xl font-extrabold text-[#172033] tracking-tight mt-1">
           Diwali Get-Together <span className="text-[#E31827]">2026 Registration</span>
         </h1>
 
@@ -148,25 +148,25 @@ export const RegisterPage: React.FC = () => {
           Official alumni entry registration. Submit your verified details to generate your digital gate pass with a unique secure QR code.
         </p>
 
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-xs text-[#172033] font-medium pt-4 border-t border-gray-100">
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 text-xs text-[#172033] font-medium pt-4 border-t border-gray-100">
           <span className="inline-flex items-center gap-1.5 text-[#16845B]">
-            <CheckCircle2 className="w-4 h-4" />
-            Verified Alumni Pass
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>Verified Alumni Pass</span>
           </span>
           <span className="inline-flex items-center gap-1.5 text-[#16845B]">
-            <CheckCircle2 className="w-4 h-4" />
-            Instant Digital Download
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>Instant Digital Download</span>
           </span>
           <span className="inline-flex items-center gap-1.5 text-[#16845B]">
-            <CheckCircle2 className="w-4 h-4" />
-            Zero Fee Admission
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>Zero Fee Admission</span>
           </span>
         </div>
       </div>
 
       {/* Error Alert Banner */}
       {errorMessage && (
-        <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-start gap-3 shadow-xs">
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-start gap-3 shadow-xs animate-fadeIn">
           <AlertCircle className="w-5 h-5 text-[#DC2626] mt-0.5 shrink-0" />
           <div className="text-xs">
             <p className="font-bold">Registration Alert</p>
@@ -177,14 +177,14 @@ export const RegisterPage: React.FC = () => {
 
       {/* Main Registration Form Card */}
       <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#FAFAFB] flex items-center justify-between">
-          <h2 className="text-sm font-bold text-[#172033] uppercase tracking-wider">
+        <div className="px-5 py-3.5 sm:px-6 sm:py-4 border-b border-[#E5E7EB] bg-[#FAFAFB] flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <h2 className="text-xs sm:text-sm font-bold text-[#172033] uppercase tracking-wider">
             Alumni Registration Form
           </h2>
-          <span className="text-[11px] text-[#64748B] font-mono">Academic Cohort 2001–2026</span>
+          <span className="text-[10px] sm:text-[11px] text-[#64748B] font-mono">Academic Cohort 2001–2026</span>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-7">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-8 space-y-6 sm:space-y-7">
           {/* SECTION 1: PERSONAL INFORMATION */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
@@ -199,7 +199,7 @@ export const RegisterPage: React.FC = () => {
                   Full Name <span className="text-[#E31827]">*</span>
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+                  <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 sm:top-2.5" />
                   <input
                     type="text"
                     name="fullName"
@@ -207,7 +207,7 @@ export const RegisterPage: React.FC = () => {
                     onChange={handleChange}
                     required
                     placeholder="e.g. Rahul Sharma"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033]"
+                    className="w-full pl-10 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] transition-colors"
                   />
                 </div>
               </div>
@@ -217,15 +217,16 @@ export const RegisterPage: React.FC = () => {
                   Email Address <span className="text-[#E31827]">*</span>
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+                  <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 sm:top-2.5" />
                   <input
                     type="email"
+                    inputMode="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     required
                     placeholder="rahul.sharma@example.com"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033]"
+                    className="w-full pl-10 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] transition-colors"
                   />
                 </div>
               </div>
@@ -235,15 +236,17 @@ export const RegisterPage: React.FC = () => {
                   Mobile Number (India) <span className="text-[#E31827]">*</span>
                 </label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+                  <Phone className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 sm:top-2.5" />
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     name="mobile"
                     value={formData.mobile}
                     onChange={handleChange}
                     required
                     placeholder="9876543210"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] font-mono"
+                    className="w-full pl-10 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] font-mono transition-colors"
                   />
                 </div>
               </div>
@@ -253,14 +256,14 @@ export const RegisterPage: React.FC = () => {
                   Current City (Optional)
                 </label>
                 <div className="relative">
-                  <MapPin className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+                  <MapPin className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 sm:top-2.5" />
                   <input
                     type="text"
                     name="currentCity"
                     value={formData.currentCity}
                     onChange={handleChange}
                     placeholder="e.g. Jaipur, Bengaluru, Gurgaon"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033]"
+                    className="w-full pl-10 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] transition-colors"
                   />
                 </div>
               </div>
@@ -285,7 +288,7 @@ export const RegisterPage: React.FC = () => {
                   value={formData.graduationYear}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
+                  className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
                 >
                   {years.map((y) => (
                     <option key={y} value={y}>
@@ -304,7 +307,7 @@ export const RegisterPage: React.FC = () => {
                   value={formData.course}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
+                  className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
                 >
                   {DEGREES.map((d) => (
                     <option key={d} value={d}>
@@ -323,7 +326,7 @@ export const RegisterPage: React.FC = () => {
                   value={formData.branch}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
+                  className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
                 >
                   {BRANCHES.map((b) => (
                     <option key={b} value={b}>
@@ -349,7 +352,7 @@ export const RegisterPage: React.FC = () => {
                   Company / Organization <span className="text-[#E31827]">*</span>
                 </label>
                 <div className="relative">
-                  <Building className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+                  <Building className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 sm:top-2.5" />
                   <input
                     type="text"
                     name="companyName"
@@ -357,7 +360,7 @@ export const RegisterPage: React.FC = () => {
                     onChange={handleChange}
                     required
                     placeholder="e.g. Google, Infosys, Self-Employed"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033]"
+                    className="w-full pl-10 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] transition-colors"
                   />
                 </div>
               </div>
@@ -367,7 +370,7 @@ export const RegisterPage: React.FC = () => {
                   Current Designation <span className="text-[#E31827]">*</span>
                 </label>
                 <div className="relative">
-                  <Briefcase className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+                  <Briefcase className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 sm:top-2.5" />
                   <input
                     type="text"
                     name="designation"
@@ -375,7 +378,7 @@ export const RegisterPage: React.FC = () => {
                     onChange={handleChange}
                     required
                     placeholder="e.g. Senior Software Engineer"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033]"
+                    className="w-full pl-10 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none text-[#172033] transition-colors"
                   />
                 </div>
               </div>
@@ -387,7 +390,7 @@ export const RegisterPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-bold text-xs uppercase tracking-wider shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-3.5 sm:py-3 min-h-[48px] rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-bold text-xs uppercase tracking-wider shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 touch-manipulation"
             >
               {loading ? (
                 <>
@@ -401,18 +404,18 @@ export const RegisterPage: React.FC = () => {
                 </>
               )}
             </button>
-            <p className="text-center text-[11px] text-[#64748B] mt-2.5">
-              Registration is verified directly in the university alumni records. No password required.
+            <p className="text-center text-[11px] text-[#64748B] mt-2.5 leading-relaxed">
+              Registration is verified directly in university alumni records. No password required.
             </p>
           </div>
         </form>
       </div>
 
       {/* Staff Login Link */}
-      <div className="text-center mt-6">
+      <div className="text-center pt-2">
         <Link
           to="/admin/login"
-          className="text-xs text-[#64748B] hover:text-[#E31827] font-medium transition-colors"
+          className="text-xs text-[#64748B] hover:text-[#E31827] font-medium transition-colors inline-block py-2"
         >
           Staff & Volunteer Gate Access Portal →
         </Link>

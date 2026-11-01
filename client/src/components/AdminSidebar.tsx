@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { JecrcLogo } from './JecrcLogo';
 import { useAuth } from '../context/AuthContext';
@@ -12,7 +12,6 @@ import {
   BarChart3,
   LogOut,
   X,
-  SidebarClose,
   Sparkles,
 } from 'lucide-react';
 
@@ -24,33 +23,54 @@ interface AdminSidebarProps {
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) => {
   const { user, isAdmin, logout } = useAuth();
 
+  // Lock background scroll when mobile drawer is open, and handle Escape key
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') onClose();
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [isOpen, onClose]);
+
   const navItemClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all relative ${isActive
-      ? 'bg-[#FEF2F2] text-[#E31827] font-semibold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-[#E31827] before:rounded-r'
-      : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100/70'
+    `flex items-center gap-3 px-3.5 py-2.5 sm:py-2.5 rounded-xl text-xs font-medium min-h-[44px] transition-all relative select-none ${
+      isActive
+        ? 'bg-[#FEF2F2] text-[#E31827] font-semibold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:bg-[#E31827] before:rounded-r'
+        : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100/70'
     }`;
 
   return (
     <>
-      {/* Mobile Backdrop */}
+      {/* Mobile Backdrop Overlay */}
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 bg-black/20 backdrop-blur-xs z-40 lg:hidden"
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 lg:hidden transition-opacity duration-300"
+          aria-hidden="true"
         />
       )}
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-white border-r border-[#E5E7EB] flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 sm:w-64 max-w-[85vw] bg-white border-r border-[#E5E7EB] flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+          isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+        }`}
       >
         {/* Brand Header */}
-        <div className="h-16 px-4 border-b border-[#E5E7EB] flex items-center justify-between">
-          <JecrcLogo universityHeight={28} alumniSize={30} showSubtitle={true} />
+        <div className="h-16 px-4 border-b border-[#E5E7EB] flex items-center justify-between shrink-0">
+          <JecrcLogo universityHeight={26} alumniSize={28} showSubtitle={true} />
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 lg:hidden"
+            className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-gray-100 lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+            aria-label="Close sidebar"
           >
             <X className="w-5 h-5" />
           </button>
@@ -127,10 +147,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
         </div>
 
         {/* User Footer Card */}
-        <div className="p-4 border-t border-[#E5E7EB] bg-gray-50/50">
-          <div className="flex items-center justify-between">
+        <div className="p-4 border-t border-[#E5E7EB] bg-gray-50/50 pb-safe shrink-0">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-8 h-8 rounded-full bg-[#E31827]/10 border border-[#E31827]/20 flex items-center justify-center text-xs font-bold text-[#E31827] shrink-0">
+              <div className="w-9 h-9 rounded-full bg-[#E31827]/10 border border-[#E31827]/20 flex items-center justify-center text-xs font-bold text-[#E31827] shrink-0">
                 {user?.username.charAt(0).toUpperCase()}
               </div>
               <div className="overflow-hidden">
@@ -146,7 +166,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
             <button
               onClick={() => logout()}
               title="Sign Out"
-              className="p-1.5 text-gray-400 hover:text-[#E31827] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+              className="p-2 text-gray-400 hover:text-[#E31827] hover:bg-red-50 rounded-xl transition-colors cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0"
             >
               <LogOut className="w-4 h-4" />
             </button>

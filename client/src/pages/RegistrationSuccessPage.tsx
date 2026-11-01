@@ -69,18 +69,18 @@ export const RegistrationSuccessPage: React.FC = () => {
   };
 
   return (
-    <div className="py-10 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto space-y-6">
+    <div className="py-6 sm:py-10 px-3 sm:px-6 lg:px-8 max-w-3xl mx-auto space-y-6">
       {!registration ? (
-        <div className="bg-white rounded-2xl p-8 max-w-md mx-auto border border-[#E5E7EB] shadow-xs text-center">
+        <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-md mx-auto border border-[#E5E7EB] shadow-xs text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <JecrcUniversityLogo height={34} />
+            <JecrcUniversityLogo height={32} />
             <div className="h-6 w-[1px] bg-gray-200" />
-            <JecrcAlumniLogo size={36} />
+            <JecrcAlumniLogo size={34} />
           </div>
-          <h2 className="text-lg font-bold text-[#172033]">
+          <h2 className="text-base sm:text-lg font-bold text-[#172033]">
             Retrieve Alumni QR Pass
           </h2>
-          <p className="text-xs text-[#64748B] mt-1 mb-6">
+          <p className="text-xs text-[#64748B] mt-1 mb-5 leading-relaxed">
             Enter your assigned Registration ID to view and download your verified entry pass.
           </p>
 
@@ -89,7 +89,7 @@ export const RegistrationSuccessPage: React.FC = () => {
               e.preventDefault();
               if (lookupId.trim()) handleLookupById(lookupId.trim());
             }}
-            className="space-y-4"
+            className="space-y-3.5"
           >
             <input
               type="text"
@@ -97,7 +97,7 @@ export const RegistrationSuccessPage: React.FC = () => {
               onChange={(e) => setLookupId(e.target.value)}
               placeholder="e.g. JECRC-DIWALI-2026-0001"
               required
-              className="w-full px-4 py-2 rounded-xl border border-[#E5E7EB] text-center font-mono text-xs focus:border-[#E31827] outline-none text-[#172033]"
+              className="w-full px-4 py-2.5 sm:py-2 rounded-xl border border-[#E5E7EB] text-center font-mono text-sm sm:text-xs min-h-[44px] focus:border-[#E31827] outline-none text-[#172033]"
             />
 
             {lookupError && (
@@ -109,7 +109,7 @@ export const RegistrationSuccessPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-semibold text-xs shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-semibold text-xs shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer min-h-[44px] touch-manipulation"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin text-white" />
@@ -123,7 +123,7 @@ export const RegistrationSuccessPage: React.FC = () => {
           <div className="mt-6 pt-4 border-t border-gray-100">
             <Link
               to="/register"
-              className="text-xs font-semibold text-[#E31827] hover:underline"
+              className="text-xs font-semibold text-[#E31827] hover:underline inline-block py-2"
             >
               Not registered yet? Register now →
             </Link>
@@ -132,7 +132,7 @@ export const RegistrationSuccessPage: React.FC = () => {
       ) : (
         <div className="space-y-6">
           {/* Success Banner (Matches institutional theme) */}
-          <div className="no-print bg-white rounded-2xl border border-[#E5E7EB] p-6 sm:p-7 shadow-xs text-center">
+          <div className="no-print bg-white rounded-2xl border border-[#E5E7EB] p-5 sm:p-7 shadow-xs text-center">
             <div className="w-12 h-12 bg-emerald-50 text-[#16845B] border border-emerald-200 rounded-full flex items-center justify-center mx-auto mb-3">
               <CheckCircle2 className="w-6 h-6" />
             </div>
@@ -141,33 +141,33 @@ export const RegistrationSuccessPage: React.FC = () => {
               Registration Confirmed
             </span>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#172033] tracking-tight mt-2">
+            <h1 className="text-xl sm:text-3xl font-extrabold text-[#172033] tracking-tight mt-2">
               Registration Successful!
             </h1>
 
-            <p className="mt-2 text-xs sm:text-sm text-[#172033] max-w-lg mx-auto font-medium">
+            <p className="mt-2 text-xs sm:text-sm text-[#172033] max-w-lg mx-auto font-medium leading-relaxed">
               Your registration for <strong>JECRC University Alumni Diwali Get-Together 2026</strong> has been confirmed.
             </p>
 
-            <p className="mt-1 text-xs text-[#64748B] max-w-md mx-auto">
+            <p className="mt-1 text-xs text-[#64748B] max-w-md mx-auto leading-relaxed">
               Please show your QR code at the university entry gate for verification. We look forward to welcoming you back!
             </p>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center justify-center gap-3 mt-5">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 mt-5">
               <button
                 onClick={handleDownload}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer min-h-[46px] touch-manipulation"
               >
-                <Download className="w-4 h-4 text-white" />
-                <span>Download QR Pass</span>
+                <Download className="w-4 h-4 text-white shrink-0" />
+                <span>Download QR Pass (PNG)</span>
               </button>
 
               <button
                 onClick={handlePrint}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] hover:bg-gray-50 text-[#172033] font-semibold text-xs shadow-xs transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 rounded-xl bg-white border border-[#E5E7EB] hover:bg-gray-50 text-[#172033] font-semibold text-xs shadow-xs transition-colors cursor-pointer min-h-[46px] touch-manipulation"
               >
-                <Printer className="w-4 h-4 text-[#172033]" />
+                <Printer className="w-4 h-4 text-[#172033] shrink-0" />
                 <span>Print QR Pass</span>
               </button>
             </div>
@@ -175,11 +175,11 @@ export const RegistrationSuccessPage: React.FC = () => {
 
           {/* Official Pass Preview Card */}
           <div>
-            <div className="no-print flex items-center justify-between mb-2.5 px-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
+            <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between mb-2.5 px-1 gap-1">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
                 Official Pass Preview
               </span>
-              <span className="text-[11px] text-[#64748B]">
+              <span className="text-[10px] sm:text-[11px] text-[#64748B]">
                 High-resolution printable gate credential
               </span>
             </div>
@@ -191,7 +191,7 @@ export const RegistrationSuccessPage: React.FC = () => {
           <div className="no-print text-center pt-2">
             <Link
               to="/register"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#64748B] hover:text-[#172033] transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#64748B] hover:text-[#172033] transition-colors py-2 px-3 rounded-lg"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Register another alumnus</span>

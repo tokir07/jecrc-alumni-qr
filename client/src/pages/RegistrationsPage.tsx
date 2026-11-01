@@ -30,6 +30,7 @@ import { useLocation } from 'react-router-dom';
 
 export const RegistrationsPage: React.FC = () => {
   const location = useLocation();
+  const isAttendancePage = location.pathname === '/admin/attendance';
   const searchParams = new URLSearchParams(location.search);
   const initialSearch = searchParams.get('search') || '';
   const initialBranch = searchParams.get('branch') || 'ALL';
@@ -43,11 +44,13 @@ export const RegistrationsPage: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  // Filters state
+  // Filters state (defaults to CHECKED_IN on attendance page)
   const [search, setSearch] = useState(initialSearch);
   const [graduationYear, setGraduationYear] = useState<string>('');
   const [branch, setBranch] = useState<string>(initialBranch);
-  const [status, setStatus] = useState<'ALL' | 'CHECKED_IN' | 'PENDING'>('ALL');
+  const [status, setStatus] = useState<'ALL' | 'CHECKED_IN' | 'PENDING'>(
+    isAttendancePage ? 'CHECKED_IN' : 'ALL'
+  );
 
   // Modals state
   const [selectedAlumni, setSelectedAlumni] = useState<any | null>(null);
@@ -171,15 +174,19 @@ export const RegistrationsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 sm:space-y-6">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E7EB]">
         <div>
-          <p className="text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-1">
-            JECRC UNIVERSITY • ALUMNI DIRECTORY
+          <p className="text-[10px] sm:text-[11px] font-bold text-[#64748B] uppercase tracking-wider mb-1">
+            {isAttendancePage ? 'JECRC UNIVERSITY • ATTENDANCE LOG' : 'JECRC UNIVERSITY • ALUMNI DIRECTORY'}
           </p>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#172033] tracking-tight">
-            Alumni Registration <span className="text-[#E31827]">Records</span>
+          <h1 className="text-xl sm:text-3xl font-extrabold text-[#172033] tracking-tight">
+            {isAttendancePage ? (
+              <>Alumni Attendance <span className="text-[#E31827]">Records</span></>
+            ) : (
+              <>Alumni Registration <span className="text-[#E31827]">Records</span></>
+            )}
           </h1>
           <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">
             Total {pagination.total} registered alumni records with gate verification status
@@ -187,40 +194,40 @@ export const RegistrationsPage: React.FC = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
           <button
             onClick={() => {
               loadVolunteers();
               setIsVolunteerModalOpen(true);
             }}
-            className="px-3.5 py-2 rounded-xl bg-white border border-[#E5E7EB] text-[#172033] hover:border-gray-300 hover:bg-gray-50 text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] text-[#172033] hover:border-gray-300 hover:bg-gray-50 text-xs font-semibold shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px]"
           >
-            <UserPlus className="w-3.5 h-3.5 text-[#E31827]" />
+            <UserPlus className="w-3.5 h-3.5 text-[#E31827] shrink-0" />
             <span>Manage Volunteers</span>
           </button>
 
           <button
             onClick={handleExportCsv}
-            className="px-3.5 py-2 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="flex-1 sm:flex-initial px-3.5 py-2.5 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white text-xs font-semibold shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px]"
           >
-            <Download className="w-3.5 h-3.5 text-white" />
+            <Download className="w-3.5 h-3.5 text-white shrink-0" />
             <span>Export CSV</span>
           </button>
         </div>
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="bg-white rounded-xl p-4 border border-[#E5E7EB] shadow-xs">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-[#E5E7EB] shadow-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3">
           {/* Search box */}
-          <div className="lg:col-span-2 relative">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-2.5" />
+          <div className="sm:col-span-2 lg:col-span-2 relative">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 sm:top-2.5" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, email, mobile, ID..."
-              className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] focus:ring-1 focus:ring-[#E31827]/20 outline-none text-[#172033] bg-[#FAFAFB]"
+              className="w-full pl-9 pr-3.5 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] focus:ring-1 focus:ring-[#E31827]/20 outline-none text-[#172033] bg-[#FAFAFB]"
             />
           </div>
 
@@ -229,7 +236,7 @@ export const RegistrationsPage: React.FC = () => {
             <select
               value={graduationYear}
               onChange={(e) => setGraduationYear(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
+              className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
             >
               <option value="">All Batches</option>
               {Array.from({ length: 26 }, (_, i) => 2026 - i).map((y) => (
@@ -245,7 +252,7 @@ export const RegistrationsPage: React.FC = () => {
             <select
               value={branch}
               onChange={(e) => setBranch(e.target.value)}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
+              className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
             >
               <option value="ALL">All Branches</option>
               <option value="Computer Science & Engineering">CSE</option>
@@ -262,7 +269,7 @@ export const RegistrationsPage: React.FC = () => {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as any)}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
+              className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
             >
               <option value="ALL">All Statuses</option>
               <option value="CHECKED_IN">Checked In</option>
@@ -272,9 +279,90 @@ export const RegistrationsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Registrations Table */}
+      {/* Main Registrations Records Container */}
       <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile View: Responsive Stacked Cards (< 768px) */}
+        <div className="block md:hidden divide-y divide-[#E5E7EB]">
+          {loading ? (
+            <div className="py-12 text-center text-gray-400">
+              <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-[#E31827]" />
+              <span className="text-xs">Loading alumni records...</span>
+            </div>
+          ) : registrations.length > 0 ? (
+            registrations.map((item) => (
+              <div key={item.id} className="p-4 space-y-3 hover:bg-gray-50/70 transition-colors">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-bold text-[#172033] text-sm">{item.fullName}</h3>
+                    <p className="font-mono text-xs font-semibold text-[#E31827] mt-0.5">{item.registrationId}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <StatusBadge isCheckedIn={item.isCheckedIn} />
+                    {item.isCheckedIn && item.checkedInAt && (
+                      <span className="block text-[10px] text-[#64748B] mt-1 font-mono">
+                        {item.checkedInAt}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs text-[#64748B] bg-[#FAFAFB] p-2.5 rounded-xl border border-[#E5E7EB]/60">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Batch & Branch</span>
+                    <span className="font-semibold text-[#172033]">Class of {item.graduationYear}</span>
+                    <span className="block text-[11px] truncate">{item.branch}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Organization</span>
+                    <span className="font-semibold text-[#172033] truncate block">{item.companyName}</span>
+                    <span className="block text-[11px] truncate">{item.designation}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1 text-xs text-[#64748B]">
+                  <a href={`mailto:${item.email}`} className="flex items-center gap-1.5 text-gray-700 hover:text-[#E31827] truncate">
+                    <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                    <span className="truncate">{item.email}</span>
+                  </a>
+                  <a href={`tel:${item.mobile}`} className="flex items-center gap-1.5 font-mono text-gray-700 hover:text-[#E31827]">
+                    <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                    <span>{item.mobile}</span>
+                  </a>
+                  {item.currentCity && item.currentCity !== '-' && (
+                    <div className="flex items-center gap-1.5 text-gray-500">
+                      <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                      <span>{item.currentCity}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                  <button
+                    onClick={() => openViewModal(item.id)}
+                    className="flex-1 px-3 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 text-[#172033] font-semibold text-xs border border-gray-200 flex items-center justify-center gap-1.5 min-h-[40px] cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>View Pass</span>
+                  </button>
+                  <button
+                    onClick={() => openEditModal(item)}
+                    className="flex-1 px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-[#E31827] font-semibold text-xs border border-red-200 flex items-center justify-center gap-1.5 min-h-[40px] cursor-pointer"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span>Edit Info</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="py-12 text-center text-gray-400 text-xs">
+              No alumni registrations matched your filter criteria.
+            </div>
+          )}
+        </div>
+
+        {/* Desktop View: Wide Table (>= 768px) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-[#FAFAFB] text-[#64748B] uppercase text-[11px] font-bold tracking-wider border-b border-[#E5E7EB]">
               <tr>
@@ -335,14 +423,14 @@ export const RegistrationsPage: React.FC = () => {
                     <td className="px-5 py-3.5 text-right space-x-1 whitespace-nowrap">
                       <button
                         onClick={() => openViewModal(item.id)}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-[#172033] hover:bg-gray-100 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-[#172033] hover:bg-gray-100 transition-colors cursor-pointer min-h-[36px] min-w-[36px]"
                         title="View Full Profile"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => openEditModal(item)}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-[#E31827] hover:bg-red-50 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-[#E31827] hover:bg-red-50 transition-colors cursor-pointer min-h-[36px] min-w-[36px]"
                         title="Edit Registration"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -362,8 +450,8 @@ export const RegistrationsPage: React.FC = () => {
         </div>
 
         {/* Server-Side Pagination Bar */}
-        <div className="p-4 bg-[#FAFAFB] border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#64748B]">
-          <div>
+        <div className="p-3.5 sm:p-4 bg-[#FAFAFB] border-t border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#64748B]">
+          <div className="text-center sm:text-left">
             Showing Page <span className="font-bold text-[#172033]">{pagination.page}</span> of{' '}
             <span className="font-bold text-[#172033]">{pagination.totalPages}</span> ({pagination.total} total alumni)
           </div>
@@ -372,15 +460,17 @@ export const RegistrationsPage: React.FC = () => {
             <button
               onClick={() => fetchRegistrations(pagination.page - 1)}
               disabled={pagination.page <= 1 || loading}
-              className="p-2 rounded-lg bg-white border border-[#E5E7EB] hover:bg-gray-100 disabled:opacity-40 transition-colors cursor-pointer"
+              className="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-white border border-[#E5E7EB] hover:bg-gray-100 disabled:opacity-40 transition-colors cursor-pointer min-h-[38px] flex items-center gap-1"
             >
               <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Previous</span>
             </button>
             <button
               onClick={() => fetchRegistrations(pagination.page + 1)}
               disabled={pagination.page >= pagination.totalPages || loading}
-              className="p-2 rounded-lg bg-white border border-[#E5E7EB] hover:bg-gray-100 disabled:opacity-40 transition-colors cursor-pointer"
+              className="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-white border border-[#E5E7EB] hover:bg-gray-100 disabled:opacity-40 transition-colors cursor-pointer min-h-[38px] flex items-center gap-1"
             >
+              <span className="hidden sm:inline">Next</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -389,29 +479,30 @@ export const RegistrationsPage: React.FC = () => {
 
       {/* VIEW DETAILS MODAL */}
       {isViewModalOpen && selectedAlumni && (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-[#E5E7EB] shadow-modal overflow-hidden animate-fadeIn">
-            <div className="p-6 border-b border-[#E5E7EB] flex items-center justify-between">
-              <div>
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col border border-[#E5E7EB] shadow-modal overflow-hidden animate-fadeIn">
+            <div className="p-4 sm:p-5 border-b border-[#E5E7EB] flex items-center justify-between shrink-0">
+              <div className="min-w-0 pr-2">
                 <span className="text-[10px] uppercase font-bold text-[#E31827] tracking-wider">
                   Verified Alumni Record
                 </span>
-                <h3 className="text-xl font-bold text-[#172033] mt-0.5">{selectedAlumni.fullName}</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-[#172033] mt-0.5 truncate">{selectedAlumni.fullName}</h3>
                 <p className="font-mono text-xs text-[#64748B]">{selectedAlumni.registrationId}</p>
               </div>
               <button
                 onClick={() => setIsViewModalOpen(false)}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 cursor-pointer"
+                className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0"
+                aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs sm:text-sm">
-              <div className="grid grid-cols-2 gap-3.5 pb-4 border-b border-gray-100">
+            <div className="p-4 sm:p-6 space-y-4 text-xs sm:text-sm overflow-y-auto flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pb-4 border-b border-gray-100">
                 <div>
                   <p className="text-[#64748B] text-[11px] font-semibold">Email Address</p>
-                  <p className="font-medium text-[#172033] mt-0.5">{selectedAlumni.email}</p>
+                  <p className="font-medium text-[#172033] mt-0.5 break-all">{selectedAlumni.email}</p>
                 </div>
                 <div>
                   <p className="text-[#64748B] text-[11px] font-semibold">Mobile Number</p>
@@ -451,7 +542,7 @@ export const RegistrationsPage: React.FC = () => {
                   Gate Verification Status
                 </p>
                 {selectedAlumni.checkIn ? (
-                  <div className="space-y-1 text-xs">
+                  <div className="space-y-1.5 text-xs">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#EBF7F2] text-[#16845B]">
                       <CheckCircle2 className="w-3.5 h-3.5" /> Checked In
                     </span>
@@ -473,10 +564,10 @@ export const RegistrationsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-4 bg-[#FAFAFB] border-t border-[#E5E7EB] flex justify-end">
+            <div className="p-3.5 sm:p-4 bg-[#FAFAFB] border-t border-[#E5E7EB] flex justify-end shrink-0">
               <button
                 onClick={() => setIsViewModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] hover:bg-gray-50 text-[#172033] font-semibold text-xs cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] hover:bg-gray-50 text-[#172033] font-semibold text-xs cursor-pointer min-h-[44px]"
               >
                 Close
               </button>
@@ -487,22 +578,23 @@ export const RegistrationsPage: React.FC = () => {
 
       {/* EDIT MODAL */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-[#E5E7EB] shadow-modal overflow-hidden animate-fadeIn">
-            <div className="p-5 border-b border-[#E5E7EB] flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-[#172033]">Edit Alumni Record</h3>
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col border border-[#E5E7EB] shadow-modal overflow-hidden animate-fadeIn">
+            <div className="p-4 sm:p-5 border-b border-[#E5E7EB] flex items-center justify-between shrink-0">
+              <div className="min-w-0 pr-2">
+                <h3 className="text-base sm:text-lg font-bold text-[#172033] truncate">Edit Alumni Record</h3>
                 <p className="text-xs text-[#64748B] font-mono">{editingAlumni?.registrationId}</p>
               </div>
               <button
                 onClick={() => setIsEditModalOpen(false)}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 cursor-pointer"
+                className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0"
+                aria-label="Close edit modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="p-6 space-y-4 text-xs">
+            <form onSubmit={handleEditSubmit} className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto flex-1">
               {editError && (
                 <div className="p-3 rounded-xl bg-red-50 text-red-700 text-xs border border-red-200">
                   {editError}
@@ -516,11 +608,11 @@ export const RegistrationsPage: React.FC = () => {
                   value={editForm.fullName || ''}
                   onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
                   required
-                  className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] text-xs focus:border-[#E31827] outline-none"
+                  className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[#172033] font-semibold mb-1">Email</label>
                   <input
@@ -528,7 +620,7 @@ export const RegistrationsPage: React.FC = () => {
                     value={editForm.email || ''}
                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                     required
-                    className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] text-xs focus:border-[#E31827] outline-none"
+                    className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none"
                   />
                 </div>
                 <div>
@@ -538,12 +630,12 @@ export const RegistrationsPage: React.FC = () => {
                     value={editForm.mobile || ''}
                     onChange={(e) => setEditForm({ ...editForm, mobile: e.target.value })}
                     required
-                    className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] text-xs focus:border-[#E31827] outline-none font-mono"
+                    className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none font-mono"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[#172033] font-semibold mb-1">Graduation Year</label>
                   <input
@@ -553,7 +645,7 @@ export const RegistrationsPage: React.FC = () => {
                       setEditForm({ ...editForm, graduationYear: parseInt(e.target.value, 10) })
                     }
                     required
-                    className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] text-xs focus:border-[#E31827] outline-none"
+                    className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none"
                   />
                 </div>
                 <div>
@@ -563,12 +655,12 @@ export const RegistrationsPage: React.FC = () => {
                     value={editForm.branch || ''}
                     onChange={(e) => setEditForm({ ...editForm, branch: e.target.value })}
                     required
-                    className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] text-xs focus:border-[#E31827] outline-none"
+                    className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[#172033] font-semibold mb-1">Company</label>
                   <input
@@ -576,7 +668,7 @@ export const RegistrationsPage: React.FC = () => {
                     value={editForm.companyName || ''}
                     onChange={(e) => setEditForm({ ...editForm, companyName: e.target.value })}
                     required
-                    className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] text-xs focus:border-[#E31827] outline-none"
+                    className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none"
                   />
                 </div>
                 <div>
@@ -586,7 +678,7 @@ export const RegistrationsPage: React.FC = () => {
                     value={editForm.designation || ''}
                     onChange={(e) => setEditForm({ ...editForm, designation: e.target.value })}
                     required
-                    className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] text-xs focus:border-[#E31827] outline-none"
+                    className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none"
                   />
                 </div>
               </div>
@@ -597,22 +689,22 @@ export const RegistrationsPage: React.FC = () => {
                   type="text"
                   value={editForm.currentCity || ''}
                   onChange={(e) => setEditForm({ ...editForm, currentCity: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] text-xs focus:border-[#E31827] outline-none"
+                  className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none"
                 />
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-[#E5E7EB]">
+              <div className="pt-3 flex flex-col sm:flex-row justify-end gap-2 border-t border-[#E5E7EB]">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-[#E5E7EB] text-[#64748B] hover:bg-gray-50 cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-[#E5E7EB] text-[#64748B] hover:bg-gray-50 cursor-pointer min-h-[44px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={editLoading}
-                  className="px-5 py-2 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-xs min-h-[44px]"
                 >
                   {editLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                   <span>Save Changes</span>
@@ -625,24 +717,25 @@ export const RegistrationsPage: React.FC = () => {
 
       {/* VOLUNTEER MANAGEMENT MODAL */}
       {isVolunteerModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-[#E5E7EB] shadow-modal overflow-hidden animate-fadeIn">
-            <div className="p-5 border-b border-[#E5E7EB] flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-[#172033]">Gate Volunteer Accounts</h3>
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col border border-[#E5E7EB] shadow-modal overflow-hidden animate-fadeIn">
+            <div className="p-4 sm:p-5 border-b border-[#E5E7EB] flex items-center justify-between shrink-0">
+              <div className="min-w-0 pr-2">
+                <h3 className="text-base sm:text-lg font-bold text-[#172033] truncate">Gate Volunteer Accounts</h3>
                 <p className="text-xs text-[#64748B]">
                   Volunteers have restricted scanning permissions to verify QR entry passes
                 </p>
               </div>
               <button
                 onClick={() => setIsVolunteerModalOpen(false)}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 cursor-pointer"
+                className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center shrink-0"
+                aria-label="Close volunteer modal"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1">
               {/* Create Volunteer Form */}
               <form onSubmit={handleCreateVolunteer} className="p-4 rounded-xl bg-[#FAFAFB] border border-[#E5E7EB] space-y-3">
                 <p className="text-xs font-bold text-[#172033] uppercase tracking-wider">
@@ -661,14 +754,14 @@ export const RegistrationsPage: React.FC = () => {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   <input
                     type="text"
                     value={newVolunteerUsername}
                     onChange={(e) => setNewVolunteerUsername(e.target.value)}
                     required
                     placeholder="Username"
-                    className="px-3 py-2 rounded-xl border border-[#E5E7EB] bg-white outline-none focus:border-[#E31827]"
+                    className="px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] bg-white outline-none focus:border-[#E31827]"
                   />
                   <input
                     type="password"
@@ -676,13 +769,13 @@ export const RegistrationsPage: React.FC = () => {
                     onChange={(e) => setNewVolunteerPassword(e.target.value)}
                     required
                     placeholder="Password (min 6)"
-                    className="px-3 py-2 rounded-xl border border-[#E5E7EB] bg-white outline-none focus:border-[#E31827]"
+                    className="px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] bg-white outline-none focus:border-[#E31827]"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-2 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  className="w-full py-2.5 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs min-h-[44px]"
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   <span>Create Volunteer Account</span>
@@ -710,10 +803,10 @@ export const RegistrationsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-4 bg-[#FAFAFB] border-t border-[#E5E7EB] flex justify-end">
+            <div className="p-3.5 sm:p-4 bg-[#FAFAFB] border-t border-[#E5E7EB] flex justify-end shrink-0">
               <button
                 onClick={() => setIsVolunteerModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] hover:bg-gray-50 text-[#172033] font-semibold text-xs cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white border border-[#E5E7EB] hover:bg-gray-50 text-[#172033] font-semibold text-xs cursor-pointer min-h-[44px]"
               >
                 Close
               </button>

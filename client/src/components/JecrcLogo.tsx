@@ -74,17 +74,17 @@ export const JecrcCombinedLogo: React.FC<{
   const aSize = size ? Math.round(size * 0.9) : alumniSize;
 
   return (
-    <div className={`flex items-center gap-2.5 ${className}`}>
-      <JecrcUniversityLogo height={uHeight} />
-      <div className="h-6 w-[1px] bg-gray-200" />
-      <div className="flex items-center gap-2">
-        <JecrcAlumniLogo size={aSize} />
+    <div className={`flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0 ${className}`}>
+      <JecrcUniversityLogo height={uHeight} className="shrink-0 max-w-[110px] sm:max-w-none" />
+      <div className="h-5 sm:h-6 w-[1px] bg-gray-200 shrink-0" />
+      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <JecrcAlumniLogo size={aSize} className="shrink-0" />
         {showSubtitle && (
           <div className="flex flex-col leading-none">
-            <span className="text-[12px] font-bold text-[#E31827] uppercase tracking-tight">
+            <span className="text-[11px] sm:text-[12px] font-bold text-[#E31827] uppercase tracking-tight">
               ALUMNI
             </span>
-            <span className="text-[9px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5">
+            <span className="text-[8px] sm:text-[9px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5 hidden xs:inline sm:inline">
               ASSOCIATION
             </span>
           </div>
