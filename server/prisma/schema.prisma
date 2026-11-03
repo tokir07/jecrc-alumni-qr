@@ -54,6 +54,7 @@ model AlumniRegistration {
   otherCourse      String?
   companyName      String
   designation      String
+  games            String[] @default([])
   qrTokenHash      String   @unique
   eventId          String
   event            Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)

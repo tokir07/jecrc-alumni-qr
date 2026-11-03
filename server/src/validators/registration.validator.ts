@@ -5,6 +5,17 @@ import {
   isValidDegreeCoursePair,
 } from '../config/academicStructure.js';
 
+export const AVAILABLE_GAMES = [
+  'Musical Chair',
+  'Dumb Charades',
+  'Cricket',
+  'Pickle Ball',
+] as const;
+
+export function isValidGameOption(game: string): boolean {
+  return AVAILABLE_GAMES.includes(game as any);
+}
+
 // Indian mobile number regex: matches with or without +91, 91, or leading 0, followed by 10 digits starting with 6-9
 const indianMobileRegex = /^(?:\+91|91|0)?[6-9]\d{9}$/;
 
@@ -87,6 +98,17 @@ export const baseAlumniRegistrationSchema = z.object({
     .min(1, 'Current Designation / Job Role is required')
     .max(150, 'Designation is too long')
     .transform(sanitizeHtml),
+  games: z
+    .array(
+      z
+        .string()
+        .trim()
+        .max(100, 'Game name is too long')
+        .transform(sanitizeHtml)
+    )
+    .max(1, 'Only one game can be selected')
+    .optional()
+    .default([]),
 });
 
 export const alumniRegistrationSchema = baseAlumniRegistrationSchema.superRefine((data, ctx) => {
@@ -127,6 +149,26 @@ export const alumniRegistrationSchema = baseAlumniRegistrationSchema.superRefine
         message: 'Please specify your course / specialization name',
         path: ['otherCourse'],
       });
+    }
+  }
+
+  // 5. Validate game selections (at most 1)
+  if (data.games && data.games.length > 0) {
+    if (data.games.length > 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Only one game can be selected',
+        path: ['games'],
+      });
+    }
+    for (const game of data.games) {
+      if (!isValidGameOption(game)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Unknown game: "${game}". Please select a valid game.`,
+          path: ['games'],
+        });
+      }
     }
   }
 });

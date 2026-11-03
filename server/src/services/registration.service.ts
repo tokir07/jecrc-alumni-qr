@@ -1,4 +1,5 @@
 import { prisma } from '../config/db.js';
+import { Prisma } from '@prisma/client';
 import { AlumniRegistrationInput } from '../validators/registration.validator.js';
 import {
   generateSecureToken,
@@ -10,6 +11,32 @@ import { generateRegistrationId } from '../utils/idGenerator.js';
 import { buildQrPayload, generateQrDataUrl } from '../utils/qrGenerator.js';
 
 export class RegistrationService {
+  // In-memory cache for active event to avoid repeated DB lookups under high concurrency
+  private cachedEvent: {
+    data: any;
+    expiresAt: number;
+  } | null = null;
+
+  private async getActiveEvent() {
+    const now = Date.now();
+    if (this.cachedEvent && this.cachedEvent.expiresAt > now) {
+      return this.cachedEvent.data;
+    }
+
+    const activeEvent = await prisma.event.findFirst({
+      where: { isActive: true },
+    });
+
+    if (activeEvent) {
+      this.cachedEvent = {
+        data: activeEvent,
+        expiresAt: now + 5 * 60 * 1000, // 5 minutes TTL
+      };
+    }
+
+    return activeEvent;
+  }
+
   /**
    * Register a new alumnus for the active Diwali event.
    */
@@ -17,70 +44,98 @@ export class RegistrationService {
     const normalizedEmail = normalizeEmail(input.email);
     const normalizedMobile = normalizeMobile(input.mobile);
 
-    // 1. Get active event
-    const activeEvent = await prisma.event.findFirst({
-      where: { isActive: true },
-    });
+    // 1. Get active event (cached for performance)
+    const activeEvent = await this.getActiveEvent();
 
     if (!activeEvent) {
       throw new Error('No active Diwali event found for registration.');
     }
 
-    // 2. Check for duplicate registration by email
-    const existingEmail = await prisma.alumniRegistration.findUnique({
-      where: { normalizedEmail },
-    });
-    if (existingEmail) {
-      const err = new Error('An alumnus with this email address is already registered.');
-      (err as any).statusCode = 409;
-      throw err;
-    }
-
-    // 3. Check for duplicate registration by mobile
-    const existingMobile = await prisma.alumniRegistration.findUnique({
-      where: { normalizedMobile },
-    });
-    if (existingMobile) {
-      const err = new Error('An alumnus with this mobile number is already registered.');
-      (err as any).statusCode = 409;
-      throw err;
-    }
-
-    // 4. Generate unique registration ID safely
-    const registrationId = await generateRegistrationId(activeEvent.year);
-
-    // 5. Generate secure random QR token and compute SHA-256 hash
-    const rawToken = generateSecureToken();
-    const qrTokenHash = hashQrToken(rawToken);
-
-    // 6. Save registration in database
-    const registration = await prisma.alumniRegistration.create({
-      data: {
-        registrationId,
-        fullName: input.fullName.trim(),
-        email: input.email.trim(),
-        normalizedEmail,
-        mobile: input.mobile.trim(),
-        normalizedMobile,
-        currentCity: input.currentCity?.trim() || null,
-        graduationYear: input.graduationYear,
-        degree: input.degree.trim(),
-        course: input.course.trim(),
-        otherDegree: input.otherDegree?.trim() || null,
-        otherCourse: input.otherCourse?.trim() || null,
-        branch: (input.branch?.trim() || input.course.trim()),
-        companyName: input.companyName.trim(),
-        designation: input.designation.trim(),
-        qrTokenHash,
-        eventId: activeEvent.id,
+    // 2. Check for duplicate registration by email or mobile in a SINGLE optimized query
+    const existingRegistration = await prisma.alumniRegistration.findFirst({
+      where: {
+        OR: [
+          { normalizedEmail },
+          { normalizedMobile },
+        ],
+      },
+      select: {
+        normalizedEmail: true,
+        normalizedMobile: true,
       },
     });
 
-    // 7. Generate verification URL and QR code image (high-res data URL)
+    if (existingRegistration) {
+      if (existingRegistration.normalizedEmail === normalizedEmail) {
+        const err = new Error('An alumnus with this email address is already registered.');
+        (err as any).statusCode = 409;
+        throw err;
+      }
+      if (existingRegistration.normalizedMobile === normalizedMobile) {
+        const err = new Error('An alumnus with this mobile number is already registered.');
+        (err as any).statusCode = 409;
+        throw err;
+      }
+    }
+
+    // 3. Generate secure random QR token and compute SHA-256 hash
+    const rawToken = generateSecureToken();
+    const qrTokenHash = hashQrToken(rawToken);
+
+    // 4. Save registration in database with atomic registration ID and collision safety
+    let registration: any = null;
+    let attempts = 0;
+
+    while (attempts < 3) {
+      try {
+        const registrationId = await generateRegistrationId(activeEvent.year);
+        registration = await prisma.alumniRegistration.create({
+          data: {
+            registrationId,
+            fullName: input.fullName.trim(),
+            email: input.email.trim(),
+            normalizedEmail,
+            mobile: input.mobile.trim(),
+            normalizedMobile,
+            currentCity: input.currentCity?.trim() || null,
+            graduationYear: input.graduationYear,
+            degree: input.degree.trim(),
+            course: input.course.trim(),
+            otherDegree: input.otherDegree?.trim() || null,
+            otherCourse: input.otherCourse?.trim() || null,
+            branch: (input.branch?.trim() || input.course.trim()),
+            companyName: input.companyName.trim(),
+            designation: input.designation.trim(),
+            games: input.games && input.games.length > 0 ? input.games : [],
+            qrTokenHash,
+            eventId: activeEvent.id,
+          },
+        });
+        break;
+      } catch (err: any) {
+        if (
+          err instanceof Prisma.PrismaClientKnownRequestError &&
+          err.code === 'P2002' &&
+          Array.isArray(err.meta?.target) &&
+          err.meta.target.includes('registrationId')
+        ) {
+          attempts++;
+          await new Promise((r) => setTimeout(r, 10 + Math.random() * 20));
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    if (!registration) {
+      throw new Error('Failed to generate a unique registration record. Please retry.');
+    }
+
+    // 5. Generate verification URL and QR code image (high-res data URL)
     const qrPayload = buildQrPayload(rawToken);
     const qrCodeDataUrl = await generateQrDataUrl(qrPayload);
 
-    // 8. Return confirmation details along with QR Code
+    // 6. Return confirmation details along with QR Code
     // Raw token is NEVER persisted in DB; only returned once in confirmation response for rendering pass
     return {
       registrationId: registration.registrationId,
@@ -96,6 +151,7 @@ export class RegistrationService {
       branch: registration.branch,
       companyName: registration.companyName,
       designation: registration.designation,
+      games: registration.games,
       createdAt: registration.createdAt,
       eventName: activeEvent.name,
       eventYear: activeEvent.year,
@@ -148,6 +204,7 @@ export class RegistrationService {
       branch: registration.branch,
       companyName: registration.companyName,
       designation: registration.designation,
+      games: registration.games,
       createdAt: registration.createdAt,
       eventName: registration.event.name,
       eventYear: registration.event.year,

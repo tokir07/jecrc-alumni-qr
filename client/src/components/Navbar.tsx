@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { JecrcLogo } from './JecrcLogo';
-import { QrCode, LayoutDashboard, Users, LogOut, Menu, X, Sparkles } from 'lucide-react';
+import { QrCode, LayoutDashboard, Users, LogOut, Menu, X, UserCheck } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -17,18 +17,17 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo & University Brand */}
           <Link to="/" className="flex items-center gap-2 sm:gap-3 shrink-0 py-2">
-            <JecrcLogo size={32} universityHeight={26} alumniSize={28} />
+            <JecrcLogo size={40} universityHeight={36} alumniSize={28} />
           </Link>
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center gap-2 sm:gap-3">
             <Link
               to="/register"
-              className={`px-3 py-2 rounded-xl text-xs font-semibold transition-colors min-h-[38px] flex items-center ${
-                isActive('/register')
-                  ? 'bg-[#FEF2F2] text-[#E31827]'
-                  : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100'
-              }`}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold transition-colors min-h-[38px] flex items-center ${isActive('/register')
+                ? 'bg-[#FEF2F2] text-[#E31827]'
+                : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100'
+                }`}
             >
               <span>Alumni Registration</span>
             </Link>
@@ -37,11 +36,10 @@ export const Navbar: React.FC = () => {
               <>
                 <Link
                   to="/admin/scanner"
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors min-h-[38px] ${
-                    isActive('/admin/scanner')
-                      ? 'bg-[#E31827] text-white'
-                      : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100'
-                  }`}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors min-h-[38px] ${isActive('/admin/scanner')
+                    ? 'bg-[#E31827] text-white'
+                    : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100'
+                    }`}
                 >
                   <QrCode className="w-3.5 h-3.5" />
                   <span>Gate Scanner</span>
@@ -50,11 +48,10 @@ export const Navbar: React.FC = () => {
                 {isAdmin && (
                   <Link
                     to="/admin/dashboard"
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors min-h-[38px] ${
-                      isActive('/admin/dashboard')
-                        ? 'bg-[#E31827] text-white'
-                        : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100'
-                    }`}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors min-h-[38px] ${isActive('/admin/dashboard')
+                      ? 'bg-[#E31827] text-white'
+                      : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100'
+                      }`}
                   >
                     <LayoutDashboard className="w-3.5 h-3.5" />
                     <span>Dashboard</span>
@@ -64,11 +61,10 @@ export const Navbar: React.FC = () => {
                 {isAdmin && (
                   <Link
                     to="/admin/registrations"
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors min-h-[38px] ${
-                      isActive('/admin/registrations')
-                        ? 'bg-[#E31827] text-white'
-                        : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100'
-                    }`}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-colors min-h-[38px] ${isActive('/admin/registrations')
+                      ? 'bg-[#E31827] text-white'
+                      : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100'
+                      }`}
                   >
                     <Users className="w-3.5 h-3.5" />
                     <span>Directory</span>
@@ -96,11 +92,10 @@ export const Navbar: React.FC = () => {
             {!isAuthenticated ? (
               <Link
                 to="/register"
-                className={`px-3 py-2 rounded-xl text-xs font-semibold transition-colors min-h-[44px] flex items-center ${
-                  isActive('/register')
-                    ? 'bg-[#FEF2F2] text-[#E31827]'
-                    : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100'
-                }`}
+                className={`px-3 py-2 rounded-xl text-xs font-semibold transition-colors min-h-[44px] flex items-center ${isActive('/register')
+                  ? 'bg-[#FEF2F2] text-[#E31827]'
+                  : 'text-[#64748B] hover:text-[#172033] hover:bg-gray-100'
+                  }`}
               >
                 <span>Register</span>
               </Link>
@@ -149,20 +144,18 @@ export const Navbar: React.FC = () => {
           <Link
             to="/register"
             onClick={() => setMobileMenuOpen(false)}
-            className={`flex items-center gap-2.5 px-3 py-3 rounded-xl text-xs font-semibold min-h-[44px] ${
-              isActive('/register') ? 'bg-[#FEF2F2] text-[#E31827]' : 'text-[#172033] hover:bg-gray-50'
-            }`}
+            className={`flex items-center gap-2.5 px-3 py-3 rounded-xl text-xs font-semibold min-h-[44px] ${isActive('/register') ? 'bg-[#FEF2F2] text-[#E31827]' : 'text-[#172033] hover:bg-gray-50'
+              }`}
           >
-            <Sparkles className="w-4 h-4 text-[#E31827]" />
+            <UserCheck className="w-4 h-4 text-[#E31827]" />
             <span>Alumni Registration Form</span>
           </Link>
 
           <Link
             to="/admin/scanner"
             onClick={() => setMobileMenuOpen(false)}
-            className={`flex items-center gap-2.5 px-3 py-3 rounded-xl text-xs font-semibold min-h-[44px] ${
-              isActive('/admin/scanner') ? 'bg-[#E31827] text-white' : 'text-[#172033] hover:bg-gray-50'
-            }`}
+            className={`flex items-center gap-2.5 px-3 py-3 rounded-xl text-xs font-semibold min-h-[44px] ${isActive('/admin/scanner') ? 'bg-[#E31827] text-white' : 'text-[#172033] hover:bg-gray-50'
+              }`}
           >
             <QrCode className="w-4 h-4" />
             <span>Gate Scanner</span>
@@ -172,9 +165,8 @@ export const Navbar: React.FC = () => {
             <Link
               to="/admin/dashboard"
               onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-2.5 px-3 py-3 rounded-xl text-xs font-semibold min-h-[44px] ${
-                isActive('/admin/dashboard') ? 'bg-[#E31827] text-white' : 'text-[#172033] hover:bg-gray-50'
-              }`}
+              className={`flex items-center gap-2.5 px-3 py-3 rounded-xl text-xs font-semibold min-h-[44px] ${isActive('/admin/dashboard') ? 'bg-[#E31827] text-white' : 'text-[#172033] hover:bg-gray-50'
+                }`}
             >
               <LayoutDashboard className="w-4 h-4" />
               <span>Admin Operations Dashboard</span>
@@ -185,9 +177,8 @@ export const Navbar: React.FC = () => {
             <Link
               to="/admin/registrations"
               onClick={() => setMobileMenuOpen(false)}
-              className={`flex items-center gap-2.5 px-3 py-3 rounded-xl text-xs font-semibold min-h-[44px] ${
-                isActive('/admin/registrations') ? 'bg-[#E31827] text-white' : 'text-[#172033] hover:bg-gray-50'
-              }`}
+              className={`flex items-center gap-2.5 px-3 py-3 rounded-xl text-xs font-semibold min-h-[44px] ${isActive('/admin/registrations') ? 'bg-[#E31827] text-white' : 'text-[#172033] hover:bg-gray-50'
+                }`}
             >
               <Users className="w-4 h-4" />
               <span>Alumni Directory & Records</span>

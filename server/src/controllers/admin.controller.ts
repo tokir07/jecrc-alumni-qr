@@ -35,6 +35,7 @@ export async function getRegistrations(
     const course = (req.query.course as string) || undefined;
     const branch = (req.query.branch as string) || undefined;
     const company = (req.query.company as string) || undefined;
+    const game = (req.query.game as string) || undefined;
     const status = (req.query.status as 'ALL' | 'CHECKED_IN' | 'PENDING') || 'ALL';
 
     const result = await adminService.getRegistrations({
@@ -46,6 +47,7 @@ export async function getRegistrations(
       course,
       branch,
       company,
+      game,
       status,
     });
 

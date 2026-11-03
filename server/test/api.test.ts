@@ -208,6 +208,69 @@ async function runTestSuite() {
     });
     assert(missingOtherCourseText.status === 400, 'Empty otherCourse custom text rejected with 400');
 
+    // Games & Activities Validation Tests
+    console.log('\n[Phase C3: Games & Activities Validation]');
+    const unknownGame = await request('POST', '/api/registrations', {
+      fullName: 'Vikram Singh',
+      email: 'vikram.singh@example.com',
+      mobile: '9829012399',
+      graduationYear: 2019,
+      degree: 'B.Tech',
+      course: 'Civil Engineering',
+      companyName: 'L&T',
+      designation: 'Project Engineer',
+      games: ['InvalidGameXYZ'],
+    });
+    assert(unknownGame.status === 400, 'Unknown game option rejected with 400');
+
+    // Reject selecting more than one game
+    const multipleGames = await request('POST', '/api/registrations', {
+      fullName: 'Vikram Singh',
+      email: `vikram.multi.${Date.now()}@example.com`,
+      mobile: `98${Math.floor(10000000 + Math.random() * 90000000)}`,
+      graduationYear: 2019,
+      degree: 'B.Tech',
+      course: 'Civil Engineering',
+      companyName: 'L&T',
+      designation: 'Project Engineer',
+      games: ['Cricket', 'Pickle Ball'],
+    });
+    assert(multipleGames.status === 400, 'Selecting more than one game is rejected with 400');
+
+    // Reject removed "Other Activities"
+    const removedOtherGame = await request('POST', '/api/registrations', {
+      fullName: 'Vikram Singh',
+      email: `vikram.other.${Date.now()}@example.com`,
+      mobile: `98${Math.floor(10000000 + Math.random() * 90000000)}`,
+      graduationYear: 2019,
+      degree: 'B.Tech',
+      course: 'Civil Engineering',
+      companyName: 'L&T',
+      designation: 'Project Engineer',
+      games: ['Other Activities'],
+    });
+    assert(removedOtherGame.status === 400, 'Other Activities rejected with 400');
+
+    // Single game selection succeeds
+    const validGamesRegistration = await request('POST', '/api/registrations', {
+      fullName: 'Vikram Singh',
+      email: `vikram.games.${Date.now()}@example.com`,
+      mobile: `98${Math.floor(10000000 + Math.random() * 90000000)}`,
+      graduationYear: 2019,
+      degree: 'B.Tech',
+      course: 'Civil Engineering',
+      companyName: 'L&T',
+      designation: 'Project Engineer',
+      games: ['Cricket'],
+    });
+    assert(validGamesRegistration.status === 201, 'Registration with single game accepted with 201');
+    assert(
+      Array.isArray(validGamesRegistration.data.data.games) &&
+        validGamesRegistration.data.data.games.length === 1 &&
+        validGamesRegistration.data.data.games[0] === 'Cricket',
+      'Single selected game persisted and returned in response'
+    );
+
     // 4. Successful Registration Flow (Standard Academic Structure)
     console.log('\n[Phase D: Successful Registration & QR Generation]');
     const uniqueEmail = `test.alumni.${Date.now()}@jecrc.ac.in`;
@@ -378,8 +441,9 @@ async function runTestSuite() {
     assert(
       typeof adminExport.data === 'string' &&
         adminExport.data.includes('Degree') &&
-        adminExport.data.includes('Course'),
-      'CSV contains Degree and Course header columns'
+        adminExport.data.includes('Course') &&
+        adminExport.data.includes('Games & Activities'),
+      'CSV contains Degree, Course, and Games & Activities header columns'
     );
   } finally {
     serverInstance!.close();

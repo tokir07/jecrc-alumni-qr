@@ -7,18 +7,18 @@ interface LogoProps {
 }
 
 /**
- * Official JECRC University Logo (provided by user)
+ * Official JECRC University Logo (New Logos 2.jpg)
  */
 export const JecrcUniversityLogo: React.FC<LogoProps> = ({
   className = '',
-  height = 36,
+  height = 50,
 }) => {
   return (
     <img
-      src="/jecrc-university-logo.png"
+      src="/New Logos 2.jpg"
       alt="JECRC University"
       style={{ height: `${height}px` }}
-      className={`object-contain ${className}`}
+      className={`object-contain w-auto max-w-full ${className}`}
       loading="eager"
     />
   );
@@ -70,28 +70,28 @@ export const JecrcCombinedLogo: React.FC<{
   alumniSize = 34,
   showSubtitle = true,
 }) => {
-  const uHeight = size ? Math.round(size * 0.85) : universityHeight;
-  const aSize = size ? Math.round(size * 0.9) : alumniSize;
+    const uHeight = size ? Math.round(size * 0.85) : universityHeight;
+    const aSize = size ? Math.round(size * 0.9) : alumniSize;
 
-  return (
-    <div className={`flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0 ${className}`}>
-      <JecrcUniversityLogo height={uHeight} className="shrink-0 max-w-[110px] sm:max-w-none" />
-      <div className="h-5 sm:h-6 w-[1px] bg-gray-200 shrink-0" />
-      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-        <JecrcAlumniLogo size={aSize} className="shrink-0" />
-        {showSubtitle && (
-          <div className="flex flex-col leading-none">
-            <span className="text-[11px] sm:text-[12px] font-bold text-[#E31827] uppercase tracking-tight">
-              ALUMNI
-            </span>
-            <span className="text-[8px] sm:text-[9px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5 hidden xs:inline sm:inline">
-              ASSOCIATION
-            </span>
-          </div>
-        )}
+    return (
+      <div className={`flex items-center gap-2 sm:gap-2.5 min-w-0 shrink-0 ${className}`}>
+        <JecrcUniversityLogo height={uHeight} className="shrink-0 max-w-[130px] sm:max-w-none" />
+        <div className="h-5 sm:h-6 w-[1px] bg-gray-200 shrink-0" />
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <JecrcAlumniLogo size={aSize} className="shrink-0" />
+          {showSubtitle && (
+            <div className="flex flex-col leading-none">
+              <span className="text-[11px] sm:text-[12px] font-bold text-[#E31827] uppercase tracking-tight">
+                ALUMNI
+              </span>
+              <span className="text-[8px] sm:text-[9px] font-semibold text-[#64748B] uppercase tracking-wider mt-0.5 hidden xs:inline sm:inline">
+                ASSOCIATION
+              </span>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 export const JecrcLogo = JecrcCombinedLogo;

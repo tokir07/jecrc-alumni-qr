@@ -47,11 +47,21 @@ export const RegistrationsPage: React.FC = () => {
 
   // Filters state (defaults to CHECKED_IN on attendance page)
   const [search, setSearch] = useState(initialSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [graduationYear, setGraduationYear] = useState<string>('');
   const [degree, setDegree] = useState<string>(initialDegree);
+  const [game, setGame] = useState<string>('ALL');
   const [status, setStatus] = useState<'ALL' | 'CHECKED_IN' | 'PENDING'>(
     isAttendancePage ? 'CHECKED_IN' : 'ALL'
   );
+
+  // Debounce search input to avoid spamming the backend on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   // Modals state
   const [selectedAlumni, setSelectedAlumni] = useState<any | null>(null);
@@ -76,9 +86,10 @@ export const RegistrationsPage: React.FC = () => {
         const params: RegistrationFilterParams = {
           page: pageToLoad,
           limit: 15,
-          search: search.trim() || undefined,
+          search: debouncedSearch.trim() || undefined,
           graduationYear: graduationYear ? parseInt(graduationYear, 10) : undefined,
           degree: degree !== 'ALL' ? degree : undefined,
+          game: game !== 'ALL' ? game : undefined,
           status,
         };
 
@@ -91,7 +102,7 @@ export const RegistrationsPage: React.FC = () => {
         setLoading(false);
       }
     },
-    [search, graduationYear, degree, status]
+    [debouncedSearch, graduationYear, degree, game, status]
   );
 
   useEffect(() => {
@@ -221,7 +232,7 @@ export const RegistrationsPage: React.FC = () => {
 
       {/* Filter & Search Bar */}
       <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-[#E5E7EB] shadow-xs">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5 sm:gap-3">
           {/* Search box */}
           <div className="sm:col-span-2 lg:col-span-2 relative">
             <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 sm:top-2.5" />
@@ -263,6 +274,21 @@ export const RegistrationsPage: React.FC = () => {
                   {d}
                 </option>
               ))}
+            </select>
+          </div>
+
+          {/* Games / Activities Filter */}
+          <div>
+            <select
+              value={game}
+              onChange={(e) => setGame(e.target.value)}
+              className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-xs min-h-[44px] rounded-xl border border-[#E5E7EB] focus:border-[#E31827] outline-none bg-white text-[#172033]"
+            >
+              <option value="ALL">All Activities</option>
+              <option value="Musical Chair">Musical Chair</option>
+              <option value="Dumb Charades">Dumb Charades</option>
+              <option value="Cricket">Cricket</option>
+              <option value="Pickle Ball">Pickle Ball</option>
             </select>
           </div>
 
@@ -558,6 +584,27 @@ export const RegistrationsPage: React.FC = () => {
                   <p className="text-[#64748B] text-[11px] font-semibold">Registration Date</p>
                   <p className="font-medium text-[#172033] mt-0.5">{selectedAlumni.createdAtFormatted}</p>
                 </div>
+              </div>
+
+              {/* Games & Activities Participation */}
+              <div className="p-4 rounded-xl bg-[#FAFAFB] border border-[#E5E7EB]">
+                <p className="text-[11px] uppercase font-bold text-[#64748B] mb-2">
+                  Games & Activities Participation
+                </p>
+                {selectedAlumni.games && selectedAlumni.games.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedAlumni.games.map((g: string) => (
+                      <span
+                        key={g}
+                        className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white border border-[#E5E7EB] text-[#172033] text-xs font-semibold shadow-2xs"
+                      >
+                        {g}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-[#64748B] italic">No games or activities selected.</p>
+                )}
               </div>
 
               {/* CheckIn Status Details */}

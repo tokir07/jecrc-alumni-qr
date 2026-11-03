@@ -153,6 +153,22 @@ export const RegistrationSuccessPage: React.FC = () => {
               Please show your QR code at the university entry gate for verification. We look forward to welcoming you back!
             </p>
 
+            {registration.games && registration.games.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-center gap-1.5">
+                <span className="text-[11px] font-semibold text-[#64748B] mr-1">
+                  Activities:
+                </span>
+                {registration.games.map((g) => (
+                  <span
+                    key={g}
+                    className="inline-block px-2.5 py-0.5 rounded-full bg-red-50 text-[#E31827] text-[11px] font-medium border border-red-100"
+                  >
+                    {g}
+                  </span>
+                ))}
+              </div>
+            )}
+
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 mt-5">
               <button

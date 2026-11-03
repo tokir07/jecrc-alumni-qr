@@ -13,51 +13,65 @@ export interface RegistrationQueryParams {
   course?: string;
   branch?: string;
   company?: string;
+  game?: string;
   status?: 'ALL' | 'CHECKED_IN' | 'PENDING';
 }
 
 export class AdminService {
   /**
-   * Calculate live dashboard statistics directly from PostgreSQL.
+   * Calculate live dashboard statistics directly from PostgreSQL in parallel.
    */
   async getDashboardMetrics() {
-    const totalRegistered = await prisma.alumniRegistration.count();
-    const totalCheckedIn = await prisma.checkIn.count();
-    const pendingEntries = Math.max(0, totalRegistered - totalCheckedIn);
-
     // Start of current day in local/UTC
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const totalEntriesToday = await prisma.checkIn.count({
-      where: {
-        checkedInAt: {
-          gte: startOfDay,
-        },
-      },
-    });
-
-    // Recent 10 Check-ins
-    const recentCheckInsData = await prisma.checkIn.findMany({
-      take: 10,
-      orderBy: { checkedInAt: 'desc' },
-      include: {
-        alumniRegistration: {
-          select: {
-            fullName: true,
-            registrationId: true,
-            graduationYear: true,
-            degree: true,
-            course: true,
-            otherDegree: true,
-            otherCourse: true,
-            branch: true,
-            companyName: true,
-            designation: true,
+    // Execute queries concurrently to minimize latency on Render Free
+    const [
+      totalRegistered,
+      totalCheckedIn,
+      totalEntriesToday,
+      recentCheckInsData,
+      allCheckIns,
+    ] = await Promise.all([
+      prisma.alumniRegistration.count(),
+      prisma.checkIn.count(),
+      prisma.checkIn.count({
+        where: {
+          checkedInAt: {
+            gte: startOfDay,
           },
         },
-      },
-    });
+      }),
+      prisma.checkIn.findMany({
+        take: 10,
+        orderBy: { checkedInAt: 'desc' },
+        include: {
+          alumniRegistration: {
+            select: {
+              fullName: true,
+              registrationId: true,
+              graduationYear: true,
+              degree: true,
+              course: true,
+              otherDegree: true,
+              otherCourse: true,
+              branch: true,
+              companyName: true,
+              designation: true,
+              games: true,
+            },
+          },
+        },
+      }),
+      prisma.checkIn.findMany({
+        select: { checkedInAt: true },
+        orderBy: { checkedInAt: 'asc' },
+        take: 1000,
+      }),
+    ]);
+
+    const pendingEntries = Math.max(0, totalRegistered - totalCheckedIn);
 
     const recentCheckIns = recentCheckInsData.map((c) => ({
       id: c.id,
@@ -71,22 +85,16 @@ export class AdminService {
       branch: c.alumniRegistration.branch,
       company: c.alumniRegistration.companyName,
       designation: c.alumniRegistration.designation,
+      games: c.alumniRegistration.games || [],
       checkInTime: formatToIST(c.checkedInAt),
       gateName: c.gateName,
       checkedInBy: c.checkedInBy,
     }));
 
     // Hourly check-in activity for the attendance overview chart
-    // Aggregate check-ins grouped into hour buckets
-    const allCheckIns = await prisma.checkIn.findMany({
-      select: { checkedInAt: true },
-      orderBy: { checkedInAt: 'asc' },
-    });
-
     const hourlyMap: Record<string, number> = {};
     for (const item of allCheckIns) {
       const date = new Date(item.checkedInAt);
-      // Format hour in IST (e.g. "05:00 PM", "06:00 PM")
       const hourStr = new Intl.DateTimeFormat('en-IN', {
         timeZone: 'Asia/Kolkata',
         hour: 'numeric',
@@ -96,7 +104,6 @@ export class AdminService {
       hourlyMap[hourStr] = (hourlyMap[hourStr] || 0) + 1;
     }
 
-    // Convert hourly map to array for Recharts
     const hourlyActivity = Object.entries(hourlyMap).map(([time, count]) => ({
       time,
       count,
@@ -165,6 +172,11 @@ export class AdminService {
       where.companyName = { contains: params.company, mode: 'insensitive' };
     }
 
+    // Games filter
+    if (params.game && params.game !== 'ALL') {
+      where.games = { has: params.game };
+    }
+
     if (params.status === 'CHECKED_IN') {
       where.checkIn = { isNot: null };
     } else if (params.status === 'PENDING') {
@@ -205,6 +217,7 @@ export class AdminService {
       branch: item.branch,
       companyName: item.companyName,
       designation: item.designation,
+      games: item.games || [],
       createdAt: formatToIST(item.createdAt),
       isCheckedIn: !!item.checkIn,
       checkedInAt: item.checkIn ? formatToIST(item.checkIn.checkedInAt) : null,
@@ -278,6 +291,7 @@ export class AdminService {
     if (input.branch) updateData.branch = input.branch.trim();
     if (input.companyName) updateData.companyName = input.companyName.trim();
     if (input.designation) updateData.designation = input.designation.trim();
+    if ((input as any).games !== undefined) updateData.games = (input as any).games;
 
     const updated = await prisma.alumniRegistration.update({
       where: { id },
@@ -309,6 +323,7 @@ export class AdminService {
       'Course',
       'Company',
       'Designation',
+      'Games & Activities',
       'Registration Date (IST)',
       'Entry Status',
       'Check-in Time (IST)',
@@ -335,6 +350,7 @@ export class AdminService {
         r.course === 'Other / Not Listed' && r.otherCourse
           ? `${r.course} (${r.otherCourse})`
           : r.course;
+      const gamesStr = r.games && r.games.length > 0 ? r.games.join(', ') : 'None';
 
       return [
         escapeCsv(r.registrationId),
@@ -347,6 +363,7 @@ export class AdminService {
         escapeCsv(displayCourse),
         escapeCsv(r.companyName),
         escapeCsv(r.designation),
+        escapeCsv(gamesStr),
         escapeCsv(formatToIST(r.createdAt)),
         escapeCsv(r.checkIn ? 'CHECKED IN' : 'PENDING'),
         escapeCsv(r.checkIn ? formatToIST(r.checkIn.checkedInAt) : ''),

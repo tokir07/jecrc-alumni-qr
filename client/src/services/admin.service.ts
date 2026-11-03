@@ -10,6 +10,7 @@ export interface RegistrationFilterParams {
   course?: string;
   branch?: string;
   company?: string;
+  game?: string;
   status?: 'ALL' | 'CHECKED_IN' | 'PENDING';
 }
 

@@ -57,8 +57,11 @@ export const DashboardPage: React.FC = () => {
   useEffect(() => {
     if (!autoRefresh) return;
     const interval = setInterval(() => {
-      fetchStats();
-    }, 15000);
+      // Pause automatic polling if document is hidden to conserve Render Free resources
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchStats();
+      }
+    }, 30000);
     return () => clearInterval(interval);
   }, [autoRefresh, fetchStats]);
 

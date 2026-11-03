@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { registrationService, RegisterPayload } from '../services/registration.service';
-import { JecrcUniversityLogo, JecrcAlumniLogo } from '../components/JecrcLogo';
 import { SearchableSelect } from '../components/SearchableSelect';
 import {
   JECRC_DEGREES,
@@ -13,15 +12,21 @@ import {
   Mail,
   Phone,
   MapPin,
-  GraduationCap,
+  Calendar,
   Building,
   Briefcase,
   AlertCircle,
   Loader2,
   CheckCircle2,
   ArrowRight,
-  Sparkles,
 } from 'lucide-react';
+
+const GAME_OPTIONS = [
+  'Musical Chair',
+  'Dumb Charades',
+  'Cricket',
+  'Pickle Ball',
+] as const;
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -38,8 +43,10 @@ export const RegisterPage: React.FC = () => {
     otherCourse: '',
     companyName: '',
     designation: '',
+    games: [],
   });
 
+  const [selectedGame, setSelectedGame] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -85,6 +92,10 @@ export const RegisterPage: React.FC = () => {
       course: selectedCourse,
       otherCourse: selectedCourse === OTHER_OPTION ? prev.otherCourse : '',
     }));
+  };
+
+  const handleGameSelect = (game: string) => {
+    setSelectedGame((prev) => (prev === game ? '' : game));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,6 +145,9 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
+    // Construct games array (at most 1 game selected)
+    const finalGames: string[] = selectedGame ? [selectedGame] : [];
+
     setLoading(true);
     try {
       // Send validated payload
@@ -150,6 +164,7 @@ export const RegisterPage: React.FC = () => {
         branch: formData.course === OTHER_OPTION ? (formData.otherCourse?.trim() || formData.course) : formData.course,
         companyName: formData.companyName.trim(),
         designation: formData.designation.trim(),
+        games: finalGames,
       };
 
       const result = await registrationService.register(payload);
@@ -168,41 +183,52 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div className="py-6 sm:py-10 px-3 sm:px-6 lg:px-8 max-w-3xl mx-auto space-y-6">
-      {/* Institutional Top Banner */}
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] p-5 sm:p-8 shadow-xs text-center">
-        <div className="flex items-center justify-center gap-2.5 sm:gap-4 mb-3 sm:mb-4">
-          <JecrcUniversityLogo height={32} className="sm:h-[42px]" />
-          <div className="h-6 sm:h-8 w-[1px] bg-gray-200" />
-          <JecrcAlumniLogo size={34} className="sm:w-[44px] sm:h-[44px]" />
+      {/* Event Header & Hero Section (Clean Institutional Design) */}
+      <section className="bg-white rounded-2xl border border-[#E5E7EB] p-6 sm:p-10 shadow-xs text-center space-y-6">
+        <div className="space-y-3">
+          <span className="inline-block px-3 py-1 rounded-full bg-[#FEF2F2] text-[#E31827] text-[11px] sm:text-xs font-bold uppercase tracking-wider">
+            JECRC University • Alumni Association
+          </span>
+
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-[#172033] tracking-tight">
+            Diwali Get-Together <span className="text-[#E31827]">2026</span>
+          </h1>
+
+          <p className="text-xs sm:text-sm text-[#64748B] max-w-xl mx-auto leading-relaxed">
+            Welcome home, Alumni! Join fellow graduates and faculty for an evening of celebration, nostalgia, and community. Register below to receive your official digital entry pass.
+          </p>
         </div>
 
-        <p className="text-[10px] sm:text-[11px] font-bold text-[#64748B] uppercase tracking-wider">
-          JECRC UNIVERSITY • ALUMNI ASSOCIATION
-        </p>
+        {/* Important Event Details */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 border-t border-gray-100 text-left">
+          <div className="p-3.5 rounded-xl bg-[#FAFAFB] border border-[#E5E7EB] flex items-start gap-3">
+            <Calendar className="w-4 h-4 text-[#E31827] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-[10px] font-bold uppercase text-[#64748B]">Date & Time</p>
+              <p className="text-xs font-semibold text-[#172033] mt-0.5">Wed, 4 Nov 2026</p>
+              <p className="text-[11px] text-[#64748B]">From 11:00 AM IST</p>
+            </div>
+          </div>
 
-        <h1 className="text-xl sm:text-3xl font-extrabold text-[#172033] tracking-tight mt-1">
-          Diwali Get-Together <span className="text-[#E31827]">2026 Registration</span>
-        </h1>
+          <div className="p-3.5 rounded-xl bg-[#FAFAFB] border border-[#E5E7EB] flex items-start gap-3">
+            <MapPin className="w-4 h-4 text-[#E31827] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-[10px] font-bold uppercase text-[#64748B]">Venue</p>
+              <p className="text-xs font-semibold text-[#172033] mt-0.5">JECRC Campus</p>
+              <p className="text-[11px] text-[#64748B]">Ramchandrapura, Sitapura</p>
+            </div>
+          </div>
 
-        <p className="mt-2 text-xs sm:text-sm text-[#64748B] max-w-lg mx-auto leading-relaxed">
-          Official alumni entry registration. Submit your verified details to generate your digital gate pass with a unique secure QR code.
-        </p>
-
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5 sm:gap-4 text-xs text-[#172033] font-medium pt-4 border-t border-gray-100">
-          <span className="inline-flex items-center gap-1.5 text-[#16845B]">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>Verified Alumni Pass</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-[#16845B]">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>Instant Digital Download</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-[#16845B]">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
-            <span>Zero Fee Admission</span>
-          </span>
+          <div className="p-3.5 rounded-xl bg-[#FAFAFB] border border-[#E5E7EB] flex items-start gap-3">
+            <CheckCircle2 className="w-4 h-4 text-[#16845B] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-[10px] font-bold uppercase text-[#64748B]">Gate Admission</p>
+              <p className="text-xs font-semibold text-[#172033] mt-0.5">Gate 01 (Main Gate)</p>
+              <p className="text-[11px] text-[#64748B]">Digital QR Pass Entry</p>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* Error Alert Banner */}
       {errorMessage && (
@@ -216,7 +242,7 @@ export const RegisterPage: React.FC = () => {
       )}
 
       {/* Main Registration Form Card */}
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden">
+      <div id="registration-form" className="bg-white rounded-2xl border border-[#E5E7EB] shadow-xs overflow-hidden scroll-mt-20">
         <div className="px-5 py-3.5 sm:px-6 sm:py-4 border-b border-[#E5E7EB] bg-[#FAFAFB] flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <h2 className="text-xs sm:text-sm font-bold text-[#172033] uppercase tracking-wider">
             Alumni Registration Form
@@ -460,6 +486,65 @@ export const RegisterPage: React.FC = () => {
                   />
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* SECTION 4: GAMES & ACTIVITIES PARTICIPATION */}
+          <div className="space-y-4">
+            <div className="pb-2 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-[#E31827] uppercase tracking-wider">
+                  4. Games & Activities Participation
+                </span>
+                <p className="text-xs text-[#64748B] mt-1">
+                  Select one game or activity you would like to participate in (optional).
+                </p>
+              </div>
+              {selectedGame && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedGame('')}
+                  className="text-[11px] font-semibold text-[#64748B] hover:text-[#E31827] cursor-pointer"
+                >
+                  Clear choice
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {GAME_OPTIONS.map((game) => {
+                const isSelected = selectedGame === game;
+                return (
+                  <button
+                    key={game}
+                    type="button"
+                    onClick={() => handleGameSelect(game)}
+                    className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all cursor-pointer min-h-[48px] select-none touch-manipulation text-left ${
+                      isSelected
+                        ? 'border-[#E31827] bg-[#FEF2F2]/60 text-[#172033] ring-1 ring-[#E31827]'
+                        : 'border-[#E5E7EB] bg-white text-[#64748B] hover:border-gray-300 hover:bg-[#FAFAFB]'
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                        isSelected
+                          ? 'border-[#E31827] bg-[#E31827]'
+                          : 'border-gray-300 bg-white'
+                      }`}
+                    >
+                      {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                    <span className="text-xs font-semibold text-[#172033] flex-1">
+                      {game}
+                    </span>
+                    {isSelected && (
+                      <span className="text-[10px] font-bold text-[#E31827] uppercase tracking-wider bg-white px-2 py-0.5 rounded-md border border-[#E31827]/20">
+                        Selected
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

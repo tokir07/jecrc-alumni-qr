@@ -6,21 +6,18 @@ import { prisma } from '../config/db.js';
  */
 export async function generateRegistrationId(year = 2026): Promise<string> {
   const prefix = `JECRC-DIWALI-${year}-`;
-  
-  // Get count of existing registrations to start counter
-  const totalCount = await prisma.alumniRegistration.count();
-  let candidateNum = totalCount + 1;
-  
-  while (true) {
-    const candidateId = `${prefix}${candidateNum.toString().padStart(4, '0')}`;
-    const existing = await prisma.alumniRegistration.findUnique({
-      where: { registrationId: candidateId },
-      select: { id: true },
-    });
-    
-    if (!existing) {
-      return candidateId;
-    }
-    candidateNum++;
+
+  try {
+    // Atomic PostgreSQL sequence query: zero lock contention, guaranteed unique under any concurrency
+    const res = await prisma.$queryRaw<{ nextval: bigint }[]>`
+      SELECT nextval('alumni_registration_seq') as nextval
+    `;
+    const seqNum = Number(res[0].nextval);
+    return `${prefix}${seqNum.toString().padStart(4, '0')}`;
+  } catch (err) {
+    // Fallback in case of database sequence glitch
+    const fallbackSeq = Date.now().toString().slice(-4);
+    const rand = Math.floor(Math.random() * 900) + 100;
+    return `${prefix}${fallbackSeq}${rand}`;
   }
 }

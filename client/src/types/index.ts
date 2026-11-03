@@ -20,6 +20,7 @@ export interface AlumniRegistrationData {
   branch: string;
   companyName: string;
   designation: string;
+  games?: string[];
   createdAt: string;
   eventName: string;
   eventYear: number;
@@ -43,6 +44,7 @@ export interface RegisterPayload {
   branch?: string;
   companyName: string;
   designation: string;
+  games?: string[];
 }
 
 export interface VerificationResult {
@@ -86,6 +88,7 @@ export interface RecentCheckIn {
   branch: string;
   company: string;
   designation: string;
+  games?: string[];
   checkInTime: string;
   gateName: string;
   checkedInBy: string;
@@ -117,6 +120,7 @@ export interface RegistrationListItem {
   branch: string;
   companyName: string;
   designation: string;
+  games?: string[];
   createdAt: string;
   isCheckedIn: boolean;
   checkedInAt: string | null;
