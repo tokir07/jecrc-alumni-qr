@@ -23,9 +23,36 @@ export class RegistrationService {
       return this.cachedEvent.data;
     }
 
-    const activeEvent = await prisma.event.findFirst({
+    let activeEvent = await prisma.event.findFirst({
       where: { isActive: true },
     });
+
+    // Auto-heal / self-bootstrap if no event is currently marked active
+    if (!activeEvent) {
+      const anyEvent = await prisma.event.findFirst({
+        orderBy: { year: 'desc' },
+      });
+
+      if (anyEvent) {
+        activeEvent = await prisma.event.update({
+          where: { id: anyEvent.id },
+          data: { isActive: true },
+        });
+      } else {
+        activeEvent = await prisma.event.upsert({
+          where: { id: 'jecrc-diwali-2026-main-event' },
+          update: { isActive: true },
+          create: {
+            id: 'jecrc-diwali-2026-main-event',
+            name: 'JECRC University Alumni Diwali Get-Together 2026',
+            year: 2026,
+            eventDate: new Date('2026-11-04T05:30:00.000Z'),
+            venue: 'JECRC University Campus, Ramchandrapura, Sitapura, Jaipur (Entry from Gate 01 - Main Gate)',
+            isActive: true,
+          },
+        });
+      }
+    }
 
     if (activeEvent) {
       this.cachedEvent = {

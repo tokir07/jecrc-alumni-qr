@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import path from 'path';
 import fs from 'fs';
 import { env } from './config/env.js';
+import { prisma } from './config/db.js';
 import apiRoutes from './routes/index.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { apiGlobalLimiter } from './middleware/rateLimiter.js';
@@ -123,6 +124,31 @@ const isTestMode =
   process.env.NODE_ENV === 'test' ||
   process.argv.some((arg) => arg.toLowerCase().includes('test'));
 
+// Auto-bootstrap active Diwali event and initial state if missing
+async function bootstrapInitialData() {
+  try {
+    const activeEvent = await prisma.event.findFirst({ where: { isActive: true } });
+    if (!activeEvent) {
+      console.log('⚡ Bootstrapping default active Diwali event...');
+      await prisma.event.upsert({
+        where: { id: 'jecrc-diwali-2026-main-event' },
+        update: { isActive: true },
+        create: {
+          id: 'jecrc-diwali-2026-main-event',
+          name: 'JECRC University Alumni Diwali Get-Together 2026',
+          year: 2026,
+          eventDate: new Date('2026-11-04T05:30:00.000Z'),
+          venue: 'JECRC University Campus, Ramchandrapura, Sitapura, Jaipur (Entry from Gate 01 - Main Gate)',
+          isActive: true,
+        },
+      });
+      console.log('✓ Default active Diwali event ready.');
+    }
+  } catch (err) {
+    console.warn('Startup database check warning (will self-heal on demand):', err);
+  }
+}
+
 if (!isTestMode) {
   const server = app.listen(env.PORT, '0.0.0.0', () => {
     console.log(`=======================================================`);
@@ -131,6 +157,7 @@ if (!isTestMode) {
     console.log(`🔗 API Base URL: http://0.0.0.0:${env.PORT}/api`);
     console.log(`💻 Client URL: ${env.CLIENT_URL}`);
     console.log(`=======================================================`);
+    bootstrapInitialData();
   });
 
   const shutdown = () => {
