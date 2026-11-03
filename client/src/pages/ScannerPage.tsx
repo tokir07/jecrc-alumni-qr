@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { scannerService } from '../services/scanner.service';
 import { VerificationResult } from '../types';
 import { soundFeedback } from '../utils/audio';
@@ -192,24 +192,21 @@ export const ScannerPage: React.FC = () => {
       // Determine camera identifier: either device ID string or facingMode object
       const cameraIdOrConfig: any = isCustomDevice ? targetCamId : { facingMode: targetFacing };
 
-      // Configure videoConstraints to strictly request 720p HD and the requested facingMode
+      // Configure scanning with QR code focus and dynamic square viewport
       const scanConfig: any = {
-        fps: 10,
+        fps: 15,
+        qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+          const minEdge = Math.min(viewfinderWidth, viewfinderHeight) || 260;
+          const size = Math.max(160, Math.floor(minEdge * 0.8));
+          return { width: size, height: size };
+        },
         disableFlip: false,
-        videoConstraints: isCustomDevice
-          ? {
-              deviceId: { exact: targetCamId },
-              width: { ideal: 1280, max: 1920 },
-              height: { ideal: 720, max: 1080 },
-            }
-          : {
-              facingMode: targetFacing,
-              width: { ideal: 1280, max: 1920 },
-              height: { ideal: 720, max: 1080 },
-            },
       };
 
-      const scanner = new Html5Qrcode('qr-reader');
+      const scanner = new Html5Qrcode('qr-reader', {
+        formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+        verbose: false,
+      });
       scannerRef.current = scanner;
 
       let started = false;
@@ -223,7 +220,7 @@ export const ScannerPage: React.FC = () => {
         started = true;
       } catch (firstErr: any) {
         console.warn('Primary scan start failed, retrying with raw facingMode...', firstErr);
-        // Fallback: Re-create clean instance and try raw facingMode without custom videoConstraints
+        // Fallback: Re-create clean instance and try raw facingMode
         try {
           if (scannerRef.current) {
             try { await scannerRef.current.stop(); } catch {}
@@ -232,12 +229,15 @@ export const ScannerPage: React.FC = () => {
           readerElem.innerHTML = '';
           await new Promise((r) => setTimeout(r, 120));
 
-          const fallbackScanner = new Html5Qrcode('qr-reader');
+          const fallbackScanner = new Html5Qrcode('qr-reader', {
+            formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+            verbose: false,
+          });
           scannerRef.current = fallbackScanner;
 
           await fallbackScanner.start(
             { facingMode: targetFacing },
-            { fps: 10, disableFlip: false },
+            { fps: 15, disableFlip: false },
             handleScanSuccess,
             () => {}
           );
@@ -307,6 +307,7 @@ export const ScannerPage: React.FC = () => {
     async (decodedText: string) => {
       if (isProcessingRef.current) return;
       isProcessingRef.current = true;
+      console.log('✅ QR Code Decoded successfully:', decodedText);
 
       // Stop camera stream cleanly before rendering verified card
       try {
@@ -386,7 +387,10 @@ export const ScannerPage: React.FC = () => {
 
     try {
       if (!scannerRef.current) {
-        scannerRef.current = new Html5Qrcode('qr-reader');
+        scannerRef.current = new Html5Qrcode('qr-reader', {
+          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+          verbose: false,
+        });
       }
 
       if (scannerRef.current.isScanning) {

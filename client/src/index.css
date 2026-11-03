@@ -90,11 +90,15 @@
 
 #qr-reader video {
   width: 100% !important;
-  height: 100% !important;
-  min-height: 280px !important;
-  object-fit: cover !important;
-  border-radius: 1rem !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border-radius: 0.75rem !important;
   display: block !important;
+  margin: 0 auto !important;
+  flex-shrink: 0 !important;
 }
 
 #qr-reader canvas {
