@@ -78,18 +78,54 @@
 #qr-reader {
   width: 100% !important;
   height: 100% !important;
+  min-height: 280px !important;
   border: none !important;
+  position: relative !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: #000000 !important;
 }
+
 #qr-reader video {
   width: 100% !important;
   height: 100% !important;
+  min-height: 280px !important;
   object-fit: cover !important;
   border-radius: 1rem !important;
+  display: block !important;
 }
+
+#qr-reader canvas {
+  display: none !important;
+}
+
 #qr-reader img[alt="Info icon"] {
   display: none !important;
 }
+
 #qr-shaded-region {
-  border-color: rgba(227, 24, 39, 0.5) !important;
+  display: none !important;
+}
+
+/* Animated laser scanning line for QR viewfinder */
+@keyframes scanLaser {
+  0% {
+    top: 12%;
+    opacity: 0.4;
+  }
+  50% {
+    top: 82%;
+    opacity: 1;
+  }
+  100% {
+    top: 12%;
+    opacity: 0.4;
+  }
+}
+
+.animate-scan-laser {
+  animation: scanLaser 2.4s ease-in-out infinite;
 }
 

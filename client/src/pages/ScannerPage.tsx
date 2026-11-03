@@ -25,6 +25,69 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 
+// Helper types and functions for camera device resolution
+interface CameraDevice {
+  id: string;
+  label: string;
+}
+
+// Find the best rear/back camera device from the enumerated list
+const findBestRearCamera = (cameraList: CameraDevice[]): CameraDevice | null => {
+  if (!cameraList || cameraList.length === 0) return null;
+
+  // 1. Primary main rear camera: matches back/rear/environment, excludes front, wide, macro, telephoto
+  const primaryBack = cameraList.find((c) => {
+    const l = (c.label || '').toLowerCase();
+    return (
+      (l.includes('back') || l.includes('rear') || l.includes('environment') || l.includes('facing back')) &&
+      !l.includes('front') &&
+      !l.includes('ultra') &&
+      !l.includes('wide') &&
+      !l.includes('tele') &&
+      !l.includes('macro') &&
+      !l.includes('depth')
+    );
+  });
+  if (primaryBack) return primaryBack;
+
+  // 2. Any back/rear camera
+  const anyBack = cameraList.find((c) => {
+    const l = (c.label || '').toLowerCase();
+    return (
+      (l.includes('back') || l.includes('rear') || l.includes('environment') || l.includes('facing back')) &&
+      !l.includes('front')
+    );
+  });
+  if (anyBack) return anyBack;
+
+  // 3. Android convention: Camera 0 is almost universally the main rear camera
+  const camera0 = cameraList.find((c) => {
+    const l = (c.label || '').toLowerCase();
+    return l.includes('0') && !l.includes('front') && !l.includes('user');
+  });
+  if (camera0) return camera0;
+
+  // 4. Any camera that does not indicate front
+  const notFront = cameraList.find((c) => {
+    const l = (c.label || '').toLowerCase();
+    return !l.includes('front') && !l.includes('user') && !l.includes('selfie') && !l.includes('facing front');
+  });
+  if (notFront) return notFront;
+
+  return null;
+};
+
+// Find the front/selfie camera from the enumerated list
+const findBestFrontCamera = (cameraList: CameraDevice[]): CameraDevice | null => {
+  if (!cameraList || cameraList.length === 0) return null;
+  return (
+    cameraList.find((c) => {
+      const l = (c.label || '').toLowerCase();
+      return l.includes('front') || l.includes('user') || l.includes('selfie') || l.includes('facing front');
+    }) || null
+  );
+};
+
 export const ScannerPage: React.FC = () => {
   const [cameras, setCameras] = useState<{ id: string; label: string }[]>([]);
   const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
@@ -52,21 +115,42 @@ export const ScannerPage: React.FC = () => {
       window.location.hostname === 'localhost' ||
       window.location.hostname === '127.0.0.1');
 
-  // Enumerate cameras once permission is available
-  const enumerateCameras = useCallback(async () => {
+  // Enumerate cameras and return the list of devices
+  const enumerateCameras = useCallback(async (): Promise<CameraDevice[]> => {
     try {
       if (Html5Qrcode && typeof Html5Qrcode.getCameras === 'function') {
         const devices = await Html5Qrcode.getCameras();
         if (devices && devices.length > 0) {
-          const formatted = devices.map((d, index) => ({
+          const formatted: CameraDevice[] = devices.map((d, index) => ({
             id: d.id,
             label: d.label || `Camera ${index + 1}`,
           }));
           setCameras(formatted);
+          return formatted;
         }
       }
     } catch (err) {
       console.warn('Camera enumeration note:', err);
+    }
+    return [];
+  }, []);
+
+  // Pre-populate cameras on mount if permissions were granted previously
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices?.enumerateDevices) {
+      navigator.mediaDevices
+        .enumerateDevices()
+        .then((devices) => {
+          const videoInputs = devices.filter((d) => d.kind === 'videoinput');
+          if (videoInputs.length > 0 && videoInputs.some((d) => d.label)) {
+            const formatted: CameraDevice[] = videoInputs.map((d, index) => ({
+              id: d.deviceId,
+              label: d.label || `Camera ${index + 1}`,
+            }));
+            setCameras(formatted);
+          }
+        })
+        .catch(() => {});
     }
   }, []);
 
@@ -106,6 +190,25 @@ export const ScannerPage: React.FC = () => {
     setHasTorch(false);
   };
 
+  // Helper to ensure video element on mobile Safari plays inline without blocking
+  const ensureVideoInlinePlayback = () => {
+    try {
+      const container = document.getElementById('qr-reader');
+      if (!container) return;
+      const video = container.querySelector('video');
+      if (video) {
+        video.setAttribute('playsinline', 'true');
+        video.setAttribute('webkit-playsinline', 'true');
+        video.setAttribute('autoplay', 'true');
+        video.muted = true;
+        video.setAttribute('muted', 'true');
+        video.play().catch(() => {});
+      }
+    } catch (e) {
+      console.warn('Video inline attributes note:', e);
+    }
+  };
+
   const startScanning = async (overrideFacing?: 'environment' | 'user', overrideCamId?: string) => {
     setCameraError(null);
     setScannerLoading(true);
@@ -115,59 +218,130 @@ export const ScannerPage: React.FC = () => {
     // 1. Guard check for Secure Context (required on phones for getUserMedia)
     if (!isSecureContext && !navigator.mediaDevices?.getUserMedia) {
       setCameraError(
-        'Mobile browsers require HTTPS to open live camera video stream. If testing over local Wi-Fi, either use HTTPS or use the "Snap Photo / Gallery" button below to scan directly!'
+        'Mobile browsers require HTTPS to stream live camera video. If testing over local Wi-Fi, tap "Snap Photo / Image" below to use your phone\'s camera directly without HTTPS!'
       );
       setScannerLoading(false);
       return;
     }
 
     try {
-      // 2. Safely ensure clean instance
+      // 2. Safely cleanup any previous instance and leftover DOM
       if (scannerRef.current) {
-        if (scannerRef.current.isScanning) {
-          try {
+        try {
+          if (scannerRef.current.isScanning) {
             await scannerRef.current.stop();
-          } catch {}
+          }
+        } catch {}
+        try {
+          scannerRef.current.clear();
+        } catch {}
+        scannerRef.current = null;
+      }
+
+      // Small pause to let the mobile camera hardware driver release cleanly
+      await new Promise((resolve) => setTimeout(resolve, 80));
+
+      const readerElem = document.getElementById('qr-reader');
+      if (!readerElem) {
+        throw new Error('Camera scanner container (#qr-reader) not found in DOM.');
+      }
+
+      // 3. Query camera device list upfront to identify exact physical hardware IDs
+      let availableCameras: CameraDevice[] = cameras;
+      if (availableCameras.length === 0) {
+        availableCameras = await enumerateCameras();
+      }
+
+      // 4. Resolve camera target constraint
+      const targetFacing = overrideFacing || facingMode;
+      const targetCamId = overrideCamId !== undefined ? overrideCamId : selectedCameraId;
+
+      // Build prioritized list of candidate constraints for the requested mode
+      const candidateConstraints: (string | { facingMode: string })[] = [];
+
+      if (targetCamId && targetCamId !== 'environment' && targetCamId !== 'user') {
+        // User explicitly picked a specific camera device ID from dropdown
+        candidateConstraints.push(targetCamId);
+      } else if (targetFacing === 'environment') {
+        // USER WANTS REAR CAMERA:
+        // Priority 1: Hardware device ID of the best rear lens (camera2 0, Back Camera)
+        const bestRear = findBestRearCamera(availableCameras);
+        if (bestRear) {
+          candidateConstraints.push(bestRear.id);
+        }
+        // Priority 2: Generic environment constraint
+        candidateConstraints.push({ facingMode: 'environment' });
+        // Priority 3: Any other camera device that is not explicitly front
+        for (const c of availableCameras) {
+          if (
+            !candidateConstraints.includes(c.id) &&
+            !c.label.toLowerCase().includes('front') &&
+            !c.label.toLowerCase().includes('user') &&
+            !c.label.toLowerCase().includes('selfie')
+          ) {
+            candidateConstraints.push(c.id);
+          }
         }
       } else {
-        scannerRef.current = new Html5Qrcode('qr-reader');
+        // USER WANTS FRONT CAMERA:
+        const bestFront = findBestFrontCamera(availableCameras);
+        if (bestFront) {
+          candidateConstraints.push(bestFront.id);
+        }
+        candidateConstraints.push({ facingMode: 'user' });
       }
 
-      // 3. Responsive qrbox configuration
+      // Fallback constraint if list was empty
+      if (candidateConstraints.length === 0) {
+        candidateConstraints.push({ facingMode: targetFacing });
+      }
+
+      const scanner = new Html5Qrcode('qr-reader');
+      scannerRef.current = scanner;
+
       const config = {
-        fps: 15,
-        qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-          const minEdge = Math.min(viewfinderWidth, viewfinderHeight) || 280;
-          const size = Math.max(160, Math.floor(minEdge * 0.72));
-          return { width: size, height: size };
-        },
-        aspectRatio: 1.0,
+        fps: 10,
+        disableFlip: false,
       };
 
-      // 4. Resolve camera constraint for mobile
-      // On mobile devices, passing `{ facingMode: 'environment' }` works far better than arbitrary device IDs
-      const activeFacing = overrideFacing || facingMode;
-      const activeCamId = overrideCamId !== undefined ? overrideCamId : selectedCameraId;
+      // Try candidates in order without hijacking to the opposite camera
+      let started = false;
+      let lastError: any = null;
 
-      let cameraConstraint: string | { facingMode: string };
-      if (activeCamId && activeCamId !== 'environment' && activeCamId !== 'user') {
-        cameraConstraint = activeCamId;
-      } else {
-        cameraConstraint = { facingMode: activeFacing };
+      for (const constraint of candidateConstraints) {
+        try {
+          await scanner.start(
+            constraint,
+            config,
+            handleScanSuccess,
+            () => {}
+          );
+          started = true;
+          if (typeof constraint === 'string') {
+            setSelectedCameraId(constraint);
+          } else {
+            setSelectedCameraId(targetFacing);
+          }
+          setFacingMode(targetFacing);
+          break;
+        } catch (candidateErr) {
+          console.warn(`Camera attempt with constraint ${JSON.stringify(constraint)} failed:`, candidateErr);
+          lastError = candidateErr;
+        }
       }
 
-      await scannerRef.current.start(
-        cameraConstraint,
-        config,
-        handleScanSuccess,
-        () => {}
-      );
+      if (!started) {
+        throw lastError || new Error(`Could not open ${targetFacing === 'environment' ? 'rear' : 'front'} camera.`);
+      }
 
+      // Enforce iOS Safari video attributes
+      ensureVideoInlinePlayback();
       setIsScanning(true);
+      setCameraError(null);
 
       // Check torch capabilities
       try {
-        const capabilities: any = scannerRef.current.getRunningTrackCapabilities();
+        const capabilities: any = scanner.getRunningTrackCapabilities();
         if (capabilities && capabilities.torch) {
           setHasTorch(true);
         }
@@ -184,15 +358,19 @@ export const ScannerPage: React.FC = () => {
           'Camera access was denied. Please allow camera permissions in your mobile browser settings and try again.'
         );
       } else if (errMsg.includes('NotFoundError') || errMsg.includes('DevicesNotFoundError')) {
-        setCameraError('No camera device found on this device.');
+        setCameraError('No camera device found on this phone.');
       } else if (errMsg.includes('NotReadableError') || errMsg.includes('TrackStartError')) {
         setCameraError(
           'Camera is currently in use by another app or browser tab. Please close other camera apps and retry.'
         );
+      } else if (errMsg.includes('OverconstrainedError')) {
+        setCameraError(
+          'Mobile rear camera hardware constraint error. Please try selecting a different lens from the Camera dropdown or use "Snap Photo".'
+        );
       } else {
         setCameraError(
           errMsg ||
-            'Could not initialize mobile camera. Please verify camera permissions or use "Snap Photo" below.'
+            'Could not initialize mobile camera. Please choose another lens from the Camera dropdown or use "Snap Photo / Image" below.'
         );
       }
       setIsScanning(false);
@@ -253,7 +431,9 @@ export const ScannerPage: React.FC = () => {
     setSelectedCameraId(newFacing);
     if (isScanning) {
       await stopScanning();
-      await startScanning(newFacing, newFacing);
+      setTimeout(() => {
+        startScanning(newFacing, newFacing);
+      }, 100);
     }
   };
 
@@ -345,8 +525,10 @@ export const ScannerPage: React.FC = () => {
     setResult(null);
     setManualId('');
     isProcessingRef.current = false;
-    // Immediately restart camera for fast consecutive admissions
-    startScanning();
+    // Allow React and DOM to unhide the camera viewport before re-initializing
+    setTimeout(() => {
+      startScanning();
+    }, 120);
   };
 
   return (
@@ -610,26 +792,32 @@ export const ScannerPage: React.FC = () => {
                 if (val === 'environment' || val === 'user') {
                   setFacingMode(val);
                   if (isScanning) {
-                    stopScanning().then(() => startScanning(val, val));
+                    stopScanning().then(() => {
+                      setTimeout(() => startScanning(val, val), 100);
+                    });
                   }
                 } else {
+                  const matchingCam = cameras.find((c) => c.id === val);
+                  const isFront = matchingCam && (matchingCam.label.toLowerCase().includes('front') || matchingCam.label.toLowerCase().includes('user'));
+                  const newFacing = isFront ? 'user' : 'environment';
+                  setFacingMode(newFacing);
                   if (isScanning) {
-                    stopScanning().then(() => startScanning(undefined, val));
+                    stopScanning().then(() => {
+                      setTimeout(() => startScanning(newFacing, val), 100);
+                    });
                   }
                 }
               }}
               className="w-full sm:w-auto min-w-[240px] px-3 py-2.5 sm:py-2 rounded-xl border border-[#E5E7EB] text-xs font-semibold bg-white text-[#172033] focus:border-[#E31827] outline-none min-h-[44px]"
             >
-              <option value="environment">Rear Camera (Recommended for Phones)</option>
-              <option value="user">Front Camera (Selfie)</option>
+              <option value="environment">Auto Rear Camera (Back Lens)</option>
+              <option value="user">Auto Front Camera (Selfie)</option>
               {cameras.length > 0 &&
-                cameras
-                  .filter((c) => c.label)
-                  .map((cam) => (
-                    <option key={cam.id} value={cam.id}>
-                      {cam.label}
-                    </option>
-                  ))}
+                cameras.map((cam, idx) => (
+                  <option key={cam.id} value={cam.id}>
+                    {cam.label || `Camera ${idx + 1}`}
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -713,21 +901,84 @@ export const ScannerPage: React.FC = () => {
         </div>
 
         {/* Central Camera Viewport (Always kept in layout with non-zero dimensions) */}
-        <div className="p-4 sm:p-6 flex flex-col items-center justify-center relative min-h-[300px] sm:min-h-[360px] bg-gray-900/95">
+        <div className="p-4 sm:p-6 flex flex-col items-center justify-center relative min-h-[320px] sm:min-h-[380px] bg-gray-900/95">
           {cameraError && (
-            <div className="mb-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs text-center max-w-md w-full shadow-xs">
-              <p className="font-bold mb-0.5">Camera Notice</p>
-              <p>{cameraError}</p>
+            <div className="mb-4 p-3.5 sm:p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs text-center max-w-md w-full shadow-xs space-y-2">
+              <div className="flex items-center justify-center gap-1.5 font-bold">
+                <ShieldAlert className="w-4 h-4 text-red-600 shrink-0" />
+                <span>Camera Notice</span>
+              </div>
+              <p className="leading-relaxed">{cameraError}</p>
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => startScanning(facingMode, selectedCameraId)}
+                  className="px-3 py-1.5 rounded-lg bg-[#E31827] text-white font-bold text-xs hover:bg-[#C81020] cursor-pointer"
+                >
+                  Retry
+                </button>
+                <button
+                  type="button"
+                  onClick={handleFlipCamera}
+                  className="px-3 py-1.5 rounded-lg bg-gray-700 text-white font-bold text-xs hover:bg-gray-800 cursor-pointer"
+                >
+                  Switch to {facingMode === 'environment' ? 'Front' : 'Rear'} Camera
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-3 py-1.5 rounded-lg bg-gray-200 text-gray-800 font-semibold text-xs hover:bg-gray-300 cursor-pointer"
+                >
+                  Snap Photo / Image
+                </button>
+              </div>
             </div>
           )}
 
           {/* Viewport Box (Always rendered so html5-qrcode always sees non-zero dimensions) */}
-          <div className="relative w-full max-w-[320px] sm:max-w-[360px] aspect-square rounded-2xl overflow-hidden shadow-xl bg-black border-2 border-gray-800">
+          <div className="relative w-full max-w-[320px] sm:max-w-[360px] aspect-square min-h-[280px] rounded-2xl overflow-hidden shadow-2xl bg-black border-2 border-gray-800">
             {/* The html5-qrcode mount point */}
-            <div id="qr-reader" className="w-full h-full"></div>
+            <div id="qr-reader" className="w-full h-full min-h-[280px]"></div>
 
-            {/* Inactive Overlay (Displayed when not scanning, without hiding the qr-reader div) */}
-            {!isScanning && (
+            {/* Live Scanning Viewfinder & Laser Animation (Rendered when camera is streaming) */}
+            {isScanning && (
+              <div className="absolute inset-0 pointer-events-none z-10 flex flex-col items-center justify-center">
+                {/* Red Laser Scanning Beam */}
+                <div className="absolute left-6 right-6 h-0.5 bg-[#E31827] shadow-[0_0_12px_#E31827] animate-scan-laser"></div>
+
+                {/* Viewfinder Target Frame with Red Corner Brackets */}
+                <div className="relative w-52 h-52 sm:w-60 sm:h-60 pointer-events-none">
+                  {/* Top-Left Corner */}
+                  <span className="absolute top-0 left-0 w-7 h-7 border-t-[3.5px] border-l-[3.5px] border-[#E31827] rounded-tl-lg"></span>
+                  {/* Top-Right Corner */}
+                  <span className="absolute top-0 right-0 w-7 h-7 border-t-[3.5px] border-r-[3.5px] border-[#E31827] rounded-tr-lg"></span>
+                  {/* Bottom-Left Corner */}
+                  <span className="absolute bottom-0 left-0 w-7 h-7 border-b-[3.5px] border-l-[3.5px] border-[#E31827] rounded-bl-lg"></span>
+                  {/* Bottom-Right Corner */}
+                  <span className="absolute bottom-0 right-0 w-7 h-7 border-b-[3.5px] border-r-[3.5px] border-[#E31827] rounded-br-lg"></span>
+                </div>
+
+                <p className="text-[10px] sm:text-[11px] font-semibold text-white/90 bg-black/60 backdrop-blur-xs px-3 py-1 rounded-full mt-3 tracking-wide shadow-xs">
+                  Center QR Pass within frame
+                </p>
+              </div>
+            )}
+
+            {/* Camera Loading Overlay (Shown while initializing / requesting permission) */}
+            {scannerLoading && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/95 text-center p-6 space-y-3 z-20">
+                <Loader2 className="w-9 h-9 animate-spin text-[#E31827]" />
+                <div>
+                  <p className="text-sm font-bold text-white">Opening Camera Feed...</p>
+                  <p className="text-xs text-gray-300 mt-1 max-w-xs mx-auto leading-relaxed">
+                    Please tap <strong>"Allow"</strong> if your mobile browser asks for camera permission.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Inactive Overlay (Displayed only when not scanning and not loading) */}
+            {!isScanning && !scannerLoading && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/95 text-center p-6 space-y-3 z-10">
                 <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-[#E31827]">
                   <Camera className="w-7 h-7" />
@@ -735,7 +986,7 @@ export const ScannerPage: React.FC = () => {
                 <div>
                   <p className="text-sm sm:text-base font-bold text-white">Scanner Inactive</p>
                   <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto leading-relaxed">
-                    Tap <strong>"Start Camera"</strong> for live video or <strong>"Snap / Image"</strong> to capture with your mobile camera.
+                    Tap <strong>"Start Camera"</strong> for live video or <strong>"Snap Photo"</strong> to capture with your mobile camera.
                   </p>
                 </div>
                 <div className="pt-2 flex flex-col sm:flex-row gap-2 w-full max-w-xs">
@@ -744,7 +995,7 @@ export const ScannerPage: React.FC = () => {
                     disabled={scannerLoading}
                     className="flex-1 py-2.5 px-4 rounded-xl bg-[#E31827] hover:bg-[#C81020] text-white font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 cursor-pointer touch-manipulation min-h-[44px]"
                   >
-                    {scannerLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                    <Camera className="w-4 h-4" />
                     <span>Start Camera</span>
                   </button>
                   <button
